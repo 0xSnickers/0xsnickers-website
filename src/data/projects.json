@@ -1,0 +1,57 @@
+{
+  "socials": {
+    "github": "https://github.com/0xSnickers",
+    "twitter": "https://x.com/0x_snickers",
+    "telegram": "https://t.me/snickers_xyz"
+  },
+  "projects": [
+    {
+      "id": 0,
+      "logo": "/images/automated-trading-meme..jpg",
+      "icon": "Code2",
+      "accent": "from-blue-500 to-cyan-400",
+      "github": "https://github.com/0xSnickers/automated-trading-meme",
+      "demo": "https://automated-trading-meme.vercel.app/",
+      "name": {
+        "en": "automated-trading-meme",
+        "zh": "automated-trading-meme"
+      },
+      "description": {
+        "en": "🔥 SOL MEME Latest Hot Signal Push (v1 Demo Trading)",
+        "zh": "🔥 SOL MEME 最新热点信号推送 (v1 模拟交易)"
+      },
+      "stack": {
+        "en": "Next.js / Meme / GMGN",
+        "zh": "Next.js / Meme / GMGN"
+      },
+      "tags": {
+        "en": ["next.js", "meme", "gmgn"],
+        "zh": ["next.js", "meme", "gmgn"]
+      }
+    },
+    {
+      "id": 1,
+      "logo": "/images/npm.png",
+      "icon": "Layers",
+      "accent": "from-purple-500 to-indigo-400",
+      "github": "https://github.com/0xSnickers/snk-wallet-kit",
+      "demo": "",
+      "name": {
+        "en": "snk-wallet-kit",
+        "zh": "snk-wallet-kit"
+      },
+      "description": {
+        "en": "🔥 A lightweight npm SDK for connecting React ecosystem wallets, supporting common EVM and Solana wallet connection functions.",
+        "zh": "🔥 轻量级 React 生态钱包连接 npm sdk，支持常用 EVM 和 Solana 钱包连接功能."
+      },
+      "stack": {
+        "en": "npm / React / Web3 Wallet",
+        "zh": "npm / React / Web3 Wallet"
+      },
+      "tags": {
+        "en": ["npm", "react", "web3 wallet"],
+        "zh": ["npm", "react", "web3 wallet"]
+      }
+    }
+  ]
+}

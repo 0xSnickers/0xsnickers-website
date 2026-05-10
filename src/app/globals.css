@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&family=Comic+Neue:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap');
+
+@layer base {
+  :root {
+    --font-baloo: 'Baloo 2', cursive;
+    --font-comic: 'Comic Neue', cursive;
+    --font-puhui: 'Noto Sans SC', sans-serif;
+  }
+}
+
+@layer utilities {
+  .aurora-bg {
+    background: linear-gradient(
+      -45deg,
+      #0ea5e9,
+      #38bdf8,
+      #00ffff,
+      #ff00ff,
+      #0066ff,
+      #00ff66
+    );
+    background-size: 400% 400%;
+    animation: auroraFlow 12s ease infinite;
+  }
+
+  .aurora-overlay {
+    background: radial-gradient(
+      ellipse at 20% 50%,
+      rgba(0, 255, 255, 0.3) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 80% 50%,
+      rgba(255, 0, 255, 0.3) 0%,
+      transparent 50%
+    );
+    animation: gradientShift 10s ease infinite;
+    background-size: 200% 200%;
+  }
+
+  .aurora-card {
+    background: linear-gradient(
+      135deg,
+      rgba(14, 165, 233, 0.1),
+      rgba(56, 189, 248, 0.1)
+    );
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(14, 165, 233, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  .aurora-card:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(14, 165, 233, 0.2),
+      rgba(56, 189, 248, 0.2)
+    );
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(14, 165, 233, 0.2);
+  }
+
+  .aurora-button {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
+  }
+
+  .aurora-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(249, 115, 22, 0.5);
+  }
+
+  .destination-gradient {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(12, 74, 110, 0.9) 100%
+    );
+  }
+}
