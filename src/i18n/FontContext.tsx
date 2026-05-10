@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type Font = 'comic' | 'puhui';
+export type Font = 'comic' | 'puhui';
 
 type FontContextType = {
   font: Font;

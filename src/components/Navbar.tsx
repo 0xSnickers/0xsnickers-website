@@ -7,8 +7,8 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { useLanguage } from '@/i18n/LanguageContext';
-import { useFont } from '@/i18n/FontContext';
+import { useLanguage, Language } from '@/i18n/LanguageContext';
+import { useFont, Font } from '@/i18n/FontContext';
 import { ToggleSwitch } from '@/components/ToggleSwitch';
 
 export default function Navbar() {
@@ -28,12 +28,12 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const languageOptions: { value: 'en' | 'zh'; label: string }[] = [
+  const languageOptions: { value: Language; label: string }[] = [
     { value: 'en', label: 'English' },
     { value: 'zh', label: '中文' },
   ];
 
-  const fontOptions: { value: 'comic' | 'puhui'; label: string }[] = [
+  const fontOptions: { value: Font; label: string }[] = [
     { value: 'comic', label: 'Comic Neue' },
     { value: 'puhui', label: 'PuHuiTi' },
   ];
