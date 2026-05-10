@@ -28,12 +28,12 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const languageOptions = [
+  const languageOptions: { value: 'en' | 'zh'; label: string }[] = [
     { value: 'en', label: 'English' },
     { value: 'zh', label: '中文' },
   ];
 
-  const fontOptions = [
+  const fontOptions: { value: 'comic' | 'puhui'; label: string }[] = [
     { value: 'comic', label: 'Comic Neue' },
     { value: 'puhui', label: 'PuHuiTi' },
   ];
