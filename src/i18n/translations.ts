@@ -29,7 +29,7 @@ export type Translation = {
 
 export const en: Translation = {
   navbar: {
-    brand: '0xSnickers',
+    brand: '0xSnickers.lol',
     font: 'Font',
   },
   hero: {
@@ -58,7 +58,7 @@ export const en: Translation = {
 
 export const zh: Translation = {
   navbar: {
-    brand: '0xSnickers',
+    brand: '0xSnickers.lol',
     font: '字体',
   },
   hero: {
