@@ -43,15 +43,16 @@ export default function Hero() {
             </p>
 
             <div className="flex flex-col gap-4 sm:flex-row">
-              <motion.a
-                href="#projects"
+              <motion.button
+                type="button"
+                onClick={() => void 0}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
                 className="aurora-button inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl px-8 py-4 text-lg font-bold text-white"
               >
                 {t.hero.browseProjects}
                 <ArrowRight className="h-5 w-5" />
-              </motion.a>
+              </motion.button>
             </div>
           </div>
 

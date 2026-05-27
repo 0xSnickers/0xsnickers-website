@@ -6,6 +6,7 @@ import {
   X,
 } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useLanguage, Language } from '@/i18n/LanguageContext';
 import { useFont, Font } from '@/i18n/FontContext';
@@ -14,12 +15,10 @@ import { ToggleSwitch } from '@/components/ToggleSwitch';
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [isClient, setIsClient] = useState(false);
   const { language, setLanguage, t } = useLanguage();
   const { font, setFont } = useFont();
 
   useEffect(() => {
-    setIsClient(true);
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
@@ -47,7 +46,7 @@ export default function Navbar() {
       }`}>
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between py-3">
-            <a href="#" className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3" onClick={() => setIsOpen(false)}>
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl overflow-hidden shadow-[0_10px_25px_rgba(14,165,233,0.28)]">
                 <Image
                   src="/images/avatar.jpg"
@@ -60,7 +59,7 @@ export default function Navbar() {
               <span className="text-2xl font-bold text-text">
                 {t.navbar.brand}
               </span>
-            </a>
+            </Link>
 
             <div className="hidden items-center gap-2 md:flex">
               <ToggleSwitch
