@@ -1,9 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&family=Comic+Neue:wght@300;400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+@source '../../content/**/*.{md,mdx}';
+
+@theme {
+  --color-primary: #0ea5e9;
+  --color-secondary: #38bdf8;
+  --color-cta: #f97316;
+  --color-background: #f0f9ff;
+  --color-text: #0c4a6e;
+  --color-border: #bae6fd;
+  --color-aurora-cyan: #00ffff;
+  --color-aurora-magenta: #ff00ff;
+  --color-aurora-yellow: #ffff00;
+  --color-aurora-blue: #0066ff;
+  --color-aurora-green: #00ff66;
+  --font-baloo: 'Baloo 2', cursive;
+  --font-comic: 'Comic Neue', cursive;
+  --font-puhui: 'Noto Sans SC', sans-serif;
+}
 
 @layer base {
   :root {

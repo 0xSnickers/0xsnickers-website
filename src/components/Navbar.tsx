@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Menu,
+  NotebookPen,
   X,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -73,6 +74,15 @@ export default function Navbar() {
                 current={language}
                 onChange={setLanguage}
               />
+              <Link
+                href="/docs"
+                className="group inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/85 px-4 py-2 font-semibold text-text shadow-[0_10px_30px_rgba(14,165,233,0.16)] backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:bg-white hover:text-primary hover:shadow-[0_14px_34px_rgba(14,165,233,0.24)]"
+                aria-label={t.navbar.docs}
+                title={t.navbar.docs}
+              >
+                <NotebookPen className="h-4.5 w-4.5 transition-transform group-hover:-rotate-6" />
+                <span>{t.navbar.docs}</span>
+              </Link>
             </div>
 
             <div className="flex items-center gap-2 md:hidden">
@@ -107,6 +117,14 @@ export default function Navbar() {
               className="md:hidden overflow-hidden"
             >
               <div className="container mx-auto px-4 py-4">
+                <Link
+                  href="/docs"
+                  className="flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-white/90 px-4 py-3 font-semibold text-text shadow-[0_10px_28px_rgba(14,165,233,0.16)] backdrop-blur-md transition-colors hover:bg-white hover:text-primary"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <NotebookPen className="h-4.5 w-4.5" />
+                  <span>{t.navbar.docs}</span>
+                </Link>
               </div>
             </motion.div>
           )}

@@ -1,0 +1,12 @@
+{
+  "title": "Frontend",
+  "description": "前端工程、交互和 UI 笔记。",
+  "root": true,
+  "pages": [
+    "index",
+    "reactjs",
+    "nextjs",
+    "vue",
+    "..."
+  ]
+}

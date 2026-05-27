@@ -2,6 +2,7 @@ export type Translation = {
   navbar: {
     brand: string;
     font: string;
+    docs: string;
   };
   hero: {
     badge: string;
@@ -31,6 +32,7 @@ export const en: Translation = {
   navbar: {
     brand: '0xsnickers.lol',
     font: 'Font',
+    docs: 'Logbook',
   },
   hero: {
     badge: 'vibe coding for anything',
@@ -60,6 +62,7 @@ export const zh: Translation = {
   navbar: {
     brand: '0xsnickers.lol',
     font: '字体',
+    docs: '日常',
   },
   hero: {
     badge: 'vibe coding for anything',
