@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM node:20-alpine AS deps
+FROM node:20-bookworm-slim AS deps
 
 WORKDIR /app
 
@@ -18,11 +18,12 @@ RUN --mount=type=cache,target=/root/.npm \
     npm ci --prefer-offline --no-audit --no-fund
 
 
-FROM node:20-alpine AS builder
+FROM node:20-bookworm-slim AS builder
 
 WORKDIR /app
 
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PRIVATE_BUILD_WORKER=1
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -30,7 +31,7 @@ COPY . .
 RUN npm run build
 
 
-FROM node:20-alpine AS runner
+FROM node:20-bookworm-slim AS runner
 
 WORKDIR /app
 

@@ -1,0 +1,98 @@
+---
+title: delegatecall
+description: 📒 delegatecall 作用说明
+---
+`delegatecall 的核心思想就是 代码复用 和 存储共享`。它允许在目标合约中定义业务逻辑，并在调用合约中执行这些逻辑，而不会改变调用合约的存储结构。这有几个重要的原因和应用场景：
+
+- 代码重用：您可以在多个合约中复用相同的逻辑，而不需要将数据存储复制到每个合约中。例如，在一个 Library 合约中集中处理某些通用操作，然后通过 delegatecall 让其他合约共享这些逻辑。
+- 存储共享：delegatecall 保证了调用合约的存储和目标合约的代码可以共同工作。目标合约中的函数可以访问调用合约的状态，而不需要重复存储。
+
+
+```
+- 在 Solidity 中，每个合约的存储是独立的，一个合约无法直接访问另一个合约的存储。
+- 通过 delegatecall，可以让另一个合约的逻辑在调用合约的上下文中执行，但这仍然是修改调用合约（而非目标合约）存储的操作。
+- 当调用 别人合约的函数 时，你只能通过它公开的接口进行交互，不能直接修改它的存储。
+
+```
+
+您的 Caller 合约（调用者合约）：这是你自己编写的合约，通过 delegatecall 调用其他合约的功能。
+```solidity
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.0;
+
+contract Caller {
+    uint public value;  // 调用合约中的状态变量 (slot=0)
+
+    address public libraryAddress;
+
+    constructor(address _libraryAddress) {
+        libraryAddress = _libraryAddress;
+    }
+
+    // 通过 delegatecall 调用 Library 合约的 setValue 方法
+    function setLibraryValue(uint _value) public {
+        // 调用后会修改当前合约中 slot->0   
+        (bool success, ) = libraryAddress.delegatecall(
+            abi.encodeWithSignature("setValue(uint256)", _value)
+        );
+        require(success, "Delegatecall failed");
+    }
+}
+```
+
+别人 Library 合约（目标合约）：这是别人部署的合约，它包含你想要调用的功能。
+```solidity
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.0;
+
+contract Library {
+    uint public value;  // 目标合约中的状态变量
+
+    function setValue(uint _value) public {
+        value = _value;  // 修改目标合约中的 `value`
+    }
+}
+```
+
+
+
+二、delegatecall 拓展用法
+🔹 1. 升级合约（Proxy 模式）
+- 原理：通过 delegatecall 调用逻辑合约（Implementation），状态变量存储在 Proxy 中。
+- 优势：升级时只换逻辑合约地址，不影响已有存储。
+- 实现模式：
+  - Transparent Proxy（OpenZeppelin 的实现）
+  - UUPS Proxy（节省 gas，使用 upgradeTo）
+- 关键点：必须保证 Proxy 和 Logic 的 存储槽布局一致，否则会乱写变量。
+👉 示例：
+```solidity
+function _delegate(address implementation) internal {
+    assembly {
+        calldatacopy(0, 0, calldatasize())
+        let result := delegatecall(gas(), implementation, 0, calldatasize(), 0, 0)
+        returndatacopy(0, 0, returndatasize())
+        switch result
+        case 0 { revert(0, returndatasize()) }
+        default { return(0, returndatasize()) }
+    }
+}
+```
+🔹 2. Library 模式（复用逻辑）
+- 原理：像 SafeMath、Strings 这种库，底层就是 delegatecall，只不过编译器帮你封装了。
+- 特征：执行库函数时，msg.sender 和 storage 都是调用合约的，不会新开存储。
+- 用途：封装常见逻辑，比如数学计算、字符串操作。
+👉 示例：
+```solidity
+using SafeMath for uint256;
+
+function deposit(uint256 amount) external {
+    balance[msg.sender] = balance[msg.sender].add(amount); // 底层是 delegatecall
+}
+```
+🔹 3. 插件式/模块化合约架构（Diamond Standard, EIP-2535）
+- 原理：合约把功能拆分为多个模块（Facet），Proxy 通过 delegatecall 把调用路由到不同模块。
+- 优势：
+  - 合约逻辑可以无限扩展
+  - 避免单个合约过大导致“stack too deep”或部署失败
+- 实现：Diamond Storage + delegatecall
+- 场景：大型协议（例如 Uniswap v3 部分模块、Aave V3 的治理）
