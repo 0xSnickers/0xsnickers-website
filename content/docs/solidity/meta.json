@@ -1,6 +1,6 @@
 {
   "title": "Solidity",
-  "description": "智能合约和链上开发笔记。",
+  "description": "EVM 合约开发笔记",
   "root": true,
   "pages": [
     "index",

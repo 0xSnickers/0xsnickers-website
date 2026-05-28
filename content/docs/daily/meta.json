@@ -1,6 +1,6 @@
 {
   "title": "Daily",
-  "description": "日常记录和阶段性复盘。",
+  "description": "日常记录和阶段性复盘",
   "root": true,
   "pages": [
     "index",
