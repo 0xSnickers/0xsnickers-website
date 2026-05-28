@@ -1,9 +1,21 @@
+# syntax=docker/dockerfile:1.7
+
 FROM node:20-alpine AS deps
 
 WORKDIR /app
 
+ARG NPM_REGISTRY=https://registry.npmmirror.com
+ENV npm_config_registry=${NPM_REGISTRY}
+ENV npm_config_replace_registry_host=always
+ENV npm_config_audit=false
+ENV npm_config_fund=false
+ENV npm_config_fetch_retries=5
+ENV npm_config_fetch_retry_mintimeout=20000
+ENV npm_config_fetch_retry_maxtimeout=120000
+
 COPY package*.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --prefer-offline --no-audit --no-fund
 
 
 FROM node:20-alpine AS builder
