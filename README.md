@@ -100,15 +100,17 @@ sequenceDiagram
   CI->>CI: Run npm ci
   CI->>CI: Run npm run build
   CI->>CI: Generate .next/standalone
+  CI->>CI: Copy .next/standalone, .next/static, and public
   CI->>CI: Pack release.tar.gz
   CI->>Server: Upload release.tar.gz by SCP
   CI->>Server: Connect by SSH
   Server->>Server: Extract release.tar.gz to next-release
-  Server->>Server: Stop previous node process if app.pid exists
+  Server->>Server: Load nvm and use Node.js runtime
+  Server->>Server: Stop previous PM2 process
   Server->>Server: Move current release to previous
   Server->>Server: Move next-release to current
-  Server->>App: Start node server.js on port 3000
-  App-->>Server: Write app.pid and app.log
+  Server->>App: Start server.js with PM2 on port 3000
+  App-->>Server: Write PM2 process state and app.log
   Proxy->>App: Proxy public traffic to 127.0.0.1:3000
 ```
 
@@ -116,13 +118,13 @@ sequenceDiagram
 GitHub Actions
   npm ci
   npm run build
-  package .next/standalone, .next/static, and public
+  package .next/standalone, .next/static, and public into release.tar.gz
   upload release.tar.gz to the server
 
 Server
   extract release.tar.gz
   switch the current release directory
-  run node server.js
+  run server.js with PM2
 ```
 
 Required GitHub repository secrets:
@@ -135,10 +137,11 @@ SERVER_PORT
 PROJECT_PATH
 ```
 
-The server must have Node.js 20 or newer available to the SSH deployment user. If Node.js is installed with nvm, the deploy script loads `$HOME/.nvm/nvm.sh` before starting the app:
+The server must have Node.js 20 or newer and PM2 available to the SSH deployment user. The current deploy script runs as `root`, loads `/root/.nvm/nvm.sh`, and uses Node.js 26 if available:
 
 ```bash
 node -v
+pm2 -v
 ```
 
 The app runs on:
@@ -153,13 +156,41 @@ Nginx or the hosting panel should proxy the public domain to:
 127.0.0.1:3000
 ```
 
+The release artifact is packed with this layout:
+
+```text
+release/
+├── server.js
+├── package.json
+├── node_modules/
+├── public/
+└── .next/
+    ├── server/
+    └── static/
+```
+
+Important: `.next/static` must be copied into `release/.next/static` as the contents of the directory, not as a nested `static` folder.
+
+Correct:
+
+```bash
+cp -R .next/static/. release/.next/static/
+```
+
+Incorrect:
+
+```bash
+cp -R .next/static release/.next/static
+```
+
+The incorrect form can create `release/.next/static/static/...`, which lets `server.js` start successfully but causes `/_next/static/...` assets to return 404.
+
 After deployment, the server project directory contains:
 
 ```text
 release.tar.gz
 current/
 previous/
-app.pid
 app.log
 ```
 
@@ -167,8 +198,9 @@ Useful server commands:
 
 ```bash
 tail -100 app.log
-cat app.pid
-kill "$(cat app.pid)"
+pm2 status
+pm2 logs 0xsnickers-website
+pm2 restart 0xsnickers-website
 ```
 
 ## Notes
