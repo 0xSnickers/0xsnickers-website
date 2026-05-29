@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -17,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
@@ -75,21 +78,53 @@ jobs:
             cd "$APP_DIR"
 
             echo "🔎 Checking runtime..."
-            if ! command -v node >/dev/null 2>&1; then
-              export NVM_DIR="$HOME/.nvm"
-              if [ -s "$NVM_DIR/nvm.sh" ]; then
-                . "$NVM_DIR/nvm.sh"
-                nvm use --silent default >/dev/null 2>&1 || nvm use --silent node >/dev/null 2>&1 || true
-              fi
+            NODE_BIN=""
+
+            if command -v node >/dev/null 2>&1; then
+              NODE_BIN="$(command -v node)"
             fi
 
-            if ! command -v node >/dev/null 2>&1; then
+            if [ -z "$NODE_BIN" ]; then
+              for NVM_DIR_CANDIDATE in "$HOME/.nvm" "/root/.nvm" "/usr/local/nvm" "/opt/nvm"; do
+                if [ -s "$NVM_DIR_CANDIDATE/nvm.sh" ]; then
+                  export NVM_DIR="$NVM_DIR_CANDIDATE"
+                  . "$NVM_DIR/nvm.sh"
+                  nvm use --silent default >/dev/null 2>&1 || nvm use --silent node >/dev/null 2>&1 || true
+                  if command -v node >/dev/null 2>&1; then
+                    NODE_BIN="$(command -v node)"
+                    break
+                  fi
+                fi
+              done
+            fi
+
+            if [ -z "$NODE_BIN" ]; then
+              for NODE_CANDIDATE in \
+                "$HOME/.nvm/versions/node"/*/bin/node \
+                "/root/.nvm/versions/node"/*/bin/node \
+                "/usr/local/bin/node" \
+                "/usr/bin/node"; do
+                if [ -x "$NODE_CANDIDATE" ]; then
+                  NODE_BIN="$NODE_CANDIDATE"
+                  break
+                fi
+              done
+            fi
+
+            if [ -z "$NODE_BIN" ]; then
               echo "❌ Node.js is not available in this SSH session."
-              echo "Install Node.js 20+ for the deploy user, or make sure nvm is installed under \$HOME/.nvm."
+              echo "Checked PATH, common nvm locations, /usr/local/bin/node, and /usr/bin/node."
+              echo "Install Node.js 20+ for the deploy user or expose the node binary in a standard path."
+              echo "Debug info:"
+              echo "HOME=$HOME"
+              echo "USER=$(whoami)"
+              echo "SHELL=${SHELL:-unknown}"
+              if [ -d "$HOME/.nvm" ]; then
+                echo "Found $HOME/.nvm, but nvm.sh or node binary was not usable."
+              fi
               exit 1
             fi
 
-            NODE_BIN="$(command -v node)"
             "$NODE_BIN" -v
 
             echo "📦 Unpacking release..."
