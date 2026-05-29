@@ -38,8 +38,11 @@ jobs:
           mkdir -p release/.next/static
 
           cp -R .next/standalone/. release/
-          cp -R .next/static release/.next/static
+          cp -R .next/static/. release/.next/static/
           cp -R public release/public || true
+
+          test -d release/.next/static/chunks
+          find release/.next/static -maxdepth 2 -type f | head -20
 
           if [ -f .env.production ]; then
             cp .env.production release/.env
@@ -83,6 +86,8 @@ jobs:
             rm -rf "$NEXT_DIR"
             mkdir -p "$NEXT_DIR"
             tar -xzf release.tar.gz -C "$NEXT_DIR"
+            test -f "$NEXT_DIR/server.js"
+            test -d "$NEXT_DIR/.next/static/chunks"
 
             # 加载 NVM（root 用户）
             echo "🔧 Loading nvm..."
@@ -107,9 +112,14 @@ jobs:
             echo "🚀 Starting PM2..."
             cd "$RELEASE_DIR"
 
+            PORT=3000 \
+            HOSTNAME=0.0.0.0 \
+            NODE_ENV=production \
+            NEXT_TELEMETRY_DISABLED=1 \
             pm2 start server.js \
               --name 0xsnickers-website \
               --env production \
+              --update-env \
               --max-memory-restart 800M \
               --log "$APP_DIR/app.log" \
               --time
