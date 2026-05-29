@@ -3,6 +3,7 @@ import './globals.css';
 import { FontProvider } from '@/i18n/FontContext';
 import { FontBody } from '@/components/FontBody';
 import { SiteShell } from '@/components/SiteShell';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   title: '0xSnickers | Vibe Coder',
@@ -19,6 +20,7 @@ export default function RootLayout({
       <FontProvider>
         <FontBody>
           <SiteShell>{children}</SiteShell>
+          <Analytics />
         </FontBody>
       </FontProvider>
     </html>

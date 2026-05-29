@@ -1,147 +1,181 @@
 # 0xSnickers Website
 
-> vibe coding for anything
+Personal website and logbook for 0xSnickers.
 
 ![GitHub stars](https://img.shields.io/github/stars/0xSnickers/0xsnickers-website?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/0xSnickers/0xsnickers-website?style=social)
 ![GitHub license](https://img.shields.io/github/license/0xSnickers/0xsnickers-website)
 
----
+## Overview
 
-## English
+This repository contains the 0xSnickers personal website, project showcase, and MDX-powered logbook.
 
-### Project Overview
+The public site is built with Next.js App Router. The `/docs` area is powered by Fumadocs and is used as a daily/technical logbook with categories such as daily notes, frontend, backend, and Solidity.
 
-0xSnickers's personal portfolio website showcasing Web3 projects, meme projects, onchain toys, automation tools, and all sorts of creative ideas.
+## Tech Stack
 
-### Tech Stack
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS v4
+- Fumadocs MDX
+- Framer Motion
+- Lucide React
 
-- **Framework**: Next.js 15
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Animations**: Framer Motion
-- **Icons**: Lucide React
+## Local Development
 
-### Features
-
-- 🌐 Bilingual support (English / 中文)
-- 🎨 Smooth animations
-- 📱 Responsive design
-- 🚀 Project showcase cards
-- 🔗 Social links integration
-
-### Quick Start
-
-#### Install dependencies
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-#### Development mode
+Start the development server:
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view it.
+Open:
 
-#### Build for production
+```text
+http://localhost:3000
+```
+
+Build the production app:
 
 ```bash
 npm run build
 ```
 
-#### Start production server
+The production build uses Next.js standalone output.
+
+## Logbook Content
+
+Fumadocs content lives in:
+
+```text
+content/docs/
+```
+
+Current top-level logbook categories:
+
+```text
+content/docs/daily/
+content/docs/frontend/
+content/docs/backend/
+content/docs/solidity/
+```
+
+Add a new MDX page under the relevant category and update that category's `meta.json` to control sidebar ordering.
+
+Example:
+
+```text
+content/docs/daily/5-29.mdx
+content/docs/daily/meta.json
+```
+
+## Deployment
+
+Deployment is handled by GitHub Actions.
+
+The server is intentionally kept as a lightweight runtime host. It does not run `npm ci`, `next build`, or `docker build`.
+
+Deployment flow:
+
+```mermaid
+sequenceDiagram
+  actor Dev as Developer
+  participant GH as GitHub
+  participant CI as GitHub Actions
+  participant Server as Server
+  participant App as Node.js Runtime
+  participant Proxy as Nginx / Hosting Panel
+
+  Dev->>GH: Push to main
+  GH->>CI: Trigger deploy workflow
+  CI->>CI: Checkout repository
+  CI->>CI: Setup Node.js 20
+  CI->>CI: Run npm ci
+  CI->>CI: Run npm run build
+  CI->>CI: Generate .next/standalone
+  CI->>CI: Pack release.tar.gz
+  CI->>Server: Upload release.tar.gz by SCP
+  CI->>Server: Connect by SSH
+  Server->>Server: Extract release.tar.gz to next-release
+  Server->>Server: Stop previous node process if app.pid exists
+  Server->>Server: Stop legacy Docker Compose service if present
+  Server->>Server: Move current release to previous
+  Server->>Server: Move next-release to current
+  Server->>App: Start node server.js on port 3000
+  App-->>Server: Write app.pid and app.log
+  Proxy->>App: Proxy public traffic to 127.0.0.1:3000
+```
+
+```text
+GitHub Actions
+  npm ci
+  npm run build
+  package .next/standalone, .next/static, and public
+  upload release.tar.gz to the server
+
+Server
+  extract release.tar.gz
+  switch the current release directory
+  run node server.js
+```
+
+Required GitHub repository secrets:
+
+```text
+SERVER_HOST
+SERVER_USER
+SSH_PRIVATE_KEY
+SERVER_PORT
+PROJECT_PATH
+```
+
+The server must have Node.js 20 available to the SSH deployment user:
 
 ```bash
-npm start
+node -v
 ```
 
-### Project Structure
+The app runs on:
 
-```
-src/
-├── app/              # Next.js App Router
-├── components/       # React components
-├── data/            # Project data
-└── i18n/            # Internationalization
+```text
+0.0.0.0:3000
 ```
 
-### Star History
+Nginx or the hosting panel should proxy the public domain to:
 
-[![Star History Chart](https://api.star-history.com/svg?repos=0xSnickers/0xsnickers-website&type=Date)](https://star-history.com/#0xSnickers/0xsnickers-website&Date)
+```text
+127.0.0.1:3000
+```
 
-### License
+After deployment, the server project directory contains:
 
-MIT
+```text
+release.tar.gz
+current/
+previous/
+app.pid
+app.log
+```
 
----
-
-## 中文
-
-### 项目简介
-
-0xSnickers 的个人作品集网站，展示 Web3 相关项目、Meme 项目、链上玩具、自动化工具等各种创意作品。
-
-### 技术栈
-
-- **框架**: Next.js 15
-- **语言**: TypeScript
-- **样式**: Tailwind CSS
-- **动画**: Framer Motion
-- **图标**: Lucide React
-
-### 功能特性
-
-- 🌐 中英文双语支持
-- 🎨 流畅的动画效果
-- 📱 响应式设计
-- 🚀 项目展示卡片
-- 🔗 社交链接集成
-
-### 快速开始
-
-#### 安装依赖
+Useful server commands:
 
 ```bash
-npm install
+tail -100 app.log
+cat app.pid
+kill "$(cat app.pid)"
 ```
 
-#### 开发模式
+## Notes
 
-```bash
-npm run dev
-```
+Docker-based deployment files have been removed to avoid confusion. Production deployment uses standalone build artifacts instead of Docker images. This avoids running heavy Next.js and Fumadocs builds on low-resource servers.
 
-打开 [http://localhost:3000](http://localhost:3000) 查看效果。
-
-#### 构建生产版本
-
-```bash
-npm run build
-```
-
-#### 启动生产服务器
-
-```bash
-npm start
-```
-
-### 项目结构
-
-```
-src/
-├── app/              # Next.js App Router
-├── components/       # React 组件
-├── data/            # 项目数据
-└── i18n/            # 国际化配置
-```
-
-### Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=0xSnickers/0xsnickers-website&type=Date)](https://star-history.com/#0xSnickers/0xsnickers-website&Date)
-
-### License
+## License
 
 MIT

@@ -1,0 +1,31 @@
+---
+title: 5-29
+description: 📒 2026-05-29 daily note.
+---
+
+
+待解决问题：
+> 2核 2GiB 的服务器跑 Next.js + Fumadocs MDX 的 build 非常容易卡死或 OOM（内存耗尽），尤其是 npm run build 那一步。
+> Fumadocs 处理 MDX 文件时内存峰值经常会冲到 4GB+，服务器根本扛不住。
+
+解决方案：
+把 build 放到本地或 CI 完成，再把产物上传（最佳实践）这是资源受限服务器最正确的做法：在你本地电脑（或 GitHub Actions / GitLab CI）执行 docker build 或直接 npm run build
+把 .next/standalone 文件夹打成压缩包上传到服务器
+Dockerfile 只用最终的 runner 阶段（非常轻量）
+
+流程
+```
+GitHub Actions
+  checkout
+  npm ci
+  npm run build
+  打包 .next/standalone + .next/static + public
+  上传 release.tar.gz
+
+服务器
+  解压到 next-release
+  停止旧 node 进程
+  停止旧 Docker 容器，防止占用 3000
+  切换 current 目录
+  nohup node server.js
+```

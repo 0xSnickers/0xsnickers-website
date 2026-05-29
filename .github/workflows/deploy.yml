@@ -8,32 +8,118 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
 
     steps:
-      - name: Deploy by SSH
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Build standalone app
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Pack release artifact
+        run: |
+          set -e
+
+          rm -rf release release.tar.gz
+          mkdir -p release/.next
+
+          cp -R .next/standalone/. release/
+          cp -R .next/static release/.next/static
+          cp -R public release/public
+
+          tar -czf release.tar.gz -C release .
+          ls -lh release.tar.gz
+
+      - name: Upload release artifact
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: release.tar.gz
+          target: ${{ secrets.PROJECT_PATH }}
+          overwrite: true
+
+      - name: Activate release
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          command_timeout: 45m
+          timeout: 30s
+          command_timeout: 5m
           script: |
             set -e
 
-            cd ${{ secrets.PROJECT_PATH }}
+            APP_DIR="${{ secrets.PROJECT_PATH }}"
+            RELEASE_DIR="$APP_DIR/current"
+            NEXT_DIR="$APP_DIR/next-release"
+            PREVIOUS_DIR="$APP_DIR/previous"
+            PID_FILE="$APP_DIR/app.pid"
+            LOG_FILE="$APP_DIR/app.log"
 
-            echo "🚀 Pulling latest code..."
-            git fetch origin main
-            git reset --hard origin/main
+            cd "$APP_DIR"
 
-            echo "🐳 Rebuilding docker..."
-            docker compose down
-            docker compose up -d --build
+            echo "🔎 Checking runtime..."
+            node -v
 
-            echo "🧹 Cleaning old images..."
-            docker image prune -f
+            echo "📦 Unpacking release..."
+            rm -rf "$NEXT_DIR"
+            mkdir -p "$NEXT_DIR"
+            tar -xzf "$APP_DIR/release.tar.gz" -C "$NEXT_DIR"
+
+            echo "🛑 Stopping old process..."
+            if [ -f "$PID_FILE" ]; then
+              OLD_PID="$(cat "$PID_FILE")"
+              if kill -0 "$OLD_PID" 2>/dev/null; then
+                kill "$OLD_PID"
+                sleep 2
+              fi
+              rm -f "$PID_FILE"
+            fi
+
+            echo "🧹 Stopping legacy Docker service if present..."
+            if command -v docker >/dev/null 2>&1 && [ -f "$APP_DIR/docker-compose.yml" ]; then
+              cd "$APP_DIR"
+              docker compose down || true
+            fi
+
+            echo "🔁 Switching release..."
+            rm -rf "$PREVIOUS_DIR"
+            if [ -d "$RELEASE_DIR" ]; then
+              mv "$RELEASE_DIR" "$PREVIOUS_DIR"
+            fi
+            mv "$NEXT_DIR" "$RELEASE_DIR"
+
+            echo "🚀 Starting app..."
+            cd "$RELEASE_DIR"
+            NODE_ENV=production \
+            PORT=3000 \
+            HOSTNAME=0.0.0.0 \
+            NEXT_TELEMETRY_DISABLED=1 \
+            nohup node server.js > "$LOG_FILE" 2>&1 &
+            echo $! > "$PID_FILE"
+
+            sleep 2
+            if ! kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+              echo "❌ App failed to start. Last logs:"
+              tail -100 "$LOG_FILE"
+              exit 1
+            fi
 
             echo "✅ Deployment completed at $(date)"
-            docker compose ps
+            echo "PID: $(cat "$PID_FILE")"
