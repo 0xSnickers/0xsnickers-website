@@ -96,7 +96,7 @@ sequenceDiagram
   Dev->>GH: Push to main
   GH->>CI: Trigger deploy workflow
   CI->>CI: Checkout repository
-  CI->>CI: Setup Node.js 20
+  CI->>CI: Setup Node.js 20 for building
   CI->>CI: Run npm ci
   CI->>CI: Run npm run build
   CI->>CI: Generate .next/standalone
@@ -105,7 +105,6 @@ sequenceDiagram
   CI->>Server: Connect by SSH
   Server->>Server: Extract release.tar.gz to next-release
   Server->>Server: Stop previous node process if app.pid exists
-  Server->>Server: Stop legacy Docker Compose service if present
   Server->>Server: Move current release to previous
   Server->>Server: Move next-release to current
   Server->>App: Start node server.js on port 3000
@@ -136,7 +135,7 @@ SERVER_PORT
 PROJECT_PATH
 ```
 
-The server must have Node.js 20 available to the SSH deployment user:
+The server must have Node.js 20 or newer available to the SSH deployment user. If Node.js is installed with nvm, the deploy script loads `$HOME/.nvm/nvm.sh` before starting the app:
 
 ```bash
 node -v
