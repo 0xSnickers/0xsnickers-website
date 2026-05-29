@@ -6,164 +6,119 @@ on:
       - main
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  NODE_VERSION_BUILD: 20   # 构建使用稳定版
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 25
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js for Build
         uses: actions/setup-node@v4
         with:
-          node-version: 24
-          cache: npm
+          node-version: ${{ env.NODE_VERSION_BUILD }}
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit --no-fund
 
-      - name: Build standalone app
+      - name: Build Next.js (Standalone)
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
 
       - name: Pack release artifact
         run: |
-          set -e
-
           rm -rf release release.tar.gz
-          mkdir -p release/.next
+          mkdir -p release/.next/static
 
           cp -R .next/standalone/. release/
           cp -R .next/static release/.next/static
-          cp -R public release/public
+          cp -R public release/public || true
+
+          # 打包环境变量文件（如果有）
+          if [ -f .env.production ]; then
+            cp .env.production release/.env
+          elif [ -f .env.local ]; then
+            cp .env.local release/.env
+          fi
 
           tar -czf release.tar.gz -C release .
           ls -lh release.tar.gz
 
-      - name: Upload release artifact
+      - name: Upload to Server (SCP)
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          source: release.tar.gz
+          source: "release.tar.gz"
           target: ${{ secrets.PROJECT_PATH }}
           overwrite: true
 
-      - name: Activate release
+      - name: Activate Release on Server (PM2)
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          timeout: 30s
-          command_timeout: 5m
+          command_timeout: 8m
           script: |
             set -e
 
             APP_DIR="${{ secrets.PROJECT_PATH }}"
             RELEASE_DIR="$APP_DIR/current"
             NEXT_DIR="$APP_DIR/next-release"
-            PREVIOUS_DIR="$APP_DIR/previous"
-            PID_FILE="$APP_DIR/app.pid"
-            LOG_FILE="$APP_DIR/app.log"
+            PREV_DIR="$APP_DIR/previous"
 
             cd "$APP_DIR"
 
-            echo "🔎 Checking runtime..."
-            NODE_BIN=""
-
-            if command -v node >/dev/null 2>&1; then
-              NODE_BIN="$(command -v node)"
-            fi
-
-            if [ -z "$NODE_BIN" ]; then
-              for NVM_DIR_CANDIDATE in "$HOME/.nvm" "/root/.nvm" "/usr/local/nvm" "/opt/nvm"; do
-                if [ -s "$NVM_DIR_CANDIDATE/nvm.sh" ]; then
-                  export NVM_DIR="$NVM_DIR_CANDIDATE"
-                  . "$NVM_DIR/nvm.sh"
-                  nvm use --silent default >/dev/null 2>&1 || nvm use --silent node >/dev/null 2>&1 || true
-                  if command -v node >/dev/null 2>&1; then
-                    NODE_BIN="$(command -v node)"
-                    break
-                  fi
-                fi
-              done
-            fi
-
-            if [ -z "$NODE_BIN" ]; then
-              for NODE_CANDIDATE in \
-                "$HOME/.nvm/versions/node"/*/bin/node \
-                "/root/.nvm/versions/node"/*/bin/node \
-                "/usr/local/bin/node" \
-                "/usr/bin/node"; do
-                if [ -x "$NODE_CANDIDATE" ]; then
-                  NODE_BIN="$NODE_CANDIDATE"
-                  break
-                fi
-              done
-            fi
-
-            if [ -z "$NODE_BIN" ]; then
-              echo "❌ Node.js is not available in this SSH session."
-              echo "Checked PATH, common nvm locations, /usr/local/bin/node, and /usr/bin/node."
-              echo "Install Node.js 20+ for the deploy user or expose the node binary in a standard path."
-              echo "Debug info:"
-              echo "HOME=$HOME"
-              echo "USER=$(whoami)"
-              echo "SHELL=${SHELL:-unknown}"
-              if [ -d "$HOME/.nvm" ]; then
-                echo "Found $HOME/.nvm, but nvm.sh or node binary was not usable."
-              fi
-              exit 1
-            fi
-
-            "$NODE_BIN" -v
-
-            echo "📦 Unpacking release..."
+            echo "📦 Unpacking new release..."
             rm -rf "$NEXT_DIR"
             mkdir -p "$NEXT_DIR"
-            tar -xzf "$APP_DIR/release.tar.gz" -C "$NEXT_DIR"
+            tar -xzf release.tar.gz -C "$NEXT_DIR"
 
-            echo "🛑 Stopping old process..."
-            if [ -f "$PID_FILE" ]; then
-              OLD_PID="$(cat "$PID_FILE")"
-              if kill -0 "$OLD_PID" 2>/dev/null; then
-                kill "$OLD_PID"
-                sleep 2
-              fi
-              rm -f "$PID_FILE"
+            # 加载 nvm 并切换到 v26
+            echo "🔧 Loading nvm and Node v26..."
+            if [ -s "$HOME/.nvm/nvm.sh" ]; then
+              . "$HOME/.nvm/nvm.sh"
+              nvm use --silent 26 || nvm use --silent default || true
             fi
 
-            echo "🔁 Switching release..."
-            rm -rf "$PREVIOUS_DIR"
-            if [ -d "$RELEASE_DIR" ]; then
-              mv "$RELEASE_DIR" "$PREVIOUS_DIR"
-            fi
+            NODE_BIN=$(command -v node)
+            echo "Using Node: $($NODE_BIN -v)"
+
+            echo "🛑 Stopping old PM2 process..."
+            pm2 delete myapp 2>/dev/null || true
+
+            echo "🔄 Switching release..."
+            rm -rf "$PREV_DIR"
+            [ -d "$RELEASE_DIR" ] && mv "$RELEASE_DIR" "$PREV_DIR"
             mv "$NEXT_DIR" "$RELEASE_DIR"
 
-            echo "🚀 Starting app..."
+            echo "🚀 Starting app with PM2..."
             cd "$RELEASE_DIR"
-            NODE_ENV=production \
-            PORT=3000 \
-            HOSTNAME=0.0.0.0 \
-            NEXT_TELEMETRY_DISABLED=1 \
-            nohup "$NODE_BIN" server.js > "$LOG_FILE" 2>&1 &
-            echo $! > "$PID_FILE"
 
-            sleep 2
-            if ! kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
-              echo "❌ App failed to start. Last logs:"
-              tail -100 "$LOG_FILE"
-              exit 1
-            fi
+            pm2 start server.js \
+              --name myapp \
+              --env production \
+              --max-memory-restart 800M \
+              --log "$APP_DIR/app.log" \
+              --time
+
+            # 保存 PM2 进程（服务器重启后自动恢复）
+            pm2 save
+
+            sleep 4
 
             echo "✅ Deployment completed at $(date)"
-            echo "PID: $(cat "$PID_FILE")"
+            echo "📊 App Status:"
+            pm2 status myapp
+            echo "📜 Last 30 logs:"
+            pm2 logs myapp --lines 30
