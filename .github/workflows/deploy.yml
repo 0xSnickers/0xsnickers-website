@@ -6,7 +6,8 @@ on:
       - main
 
 env:
-  NODE_VERSION_BUILD: 20   # 构建使用稳定版
+  NODE_VERSION_BUILD: 20
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true   # 解决 Node 20 警告
 
 jobs:
   deploy:
@@ -40,7 +41,6 @@ jobs:
           cp -R .next/static release/.next/static
           cp -R public release/public || true
 
-          # 打包环境变量文件（如果有）
           if [ -f .env.production ]; then
             cp .env.production release/.env
           elif [ -f .env.local ]; then
@@ -68,7 +68,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          command_timeout: 8m
+          command_timeout: 10m
           script: |
             set -e
 
@@ -84,17 +84,27 @@ jobs:
             mkdir -p "$NEXT_DIR"
             tar -xzf release.tar.gz -C "$NEXT_DIR"
 
-            # 加载 nvm 并切换到 v26
-            echo "🔧 Loading nvm and Node v26..."
+            # ==================== nvm 加载调试 ====================
+            echo "🔧 Loading nvm..."
             if [ -s "$HOME/.nvm/nvm.sh" ]; then
               . "$HOME/.nvm/nvm.sh"
-              nvm use --silent 26 || nvm use --silent default || true
+              echo "nvm loaded successfully"
+              nvm use 26 --silent || echo "Warning: nvm use 26 failed, trying default..."
+              nvm use default --silent || true
+            else
+              echo "❌ nvm.sh not found!"
             fi
 
-            NODE_BIN=$(command -v node)
-            echo "Using Node: $($NODE_BIN -v)"
+            NODE_BIN=$(command -v node || echo "node_not_found")
+            echo "Using Node: $($NODE_BIN -v 2>/dev/null || echo 'unknown') at $NODE_BIN"
 
-            echo "🛑 Stopping old PM2 process..."
+            if [ "$NODE_BIN" = "node_not_found" ]; then
+              echo "❌ Node.js not found after nvm load!"
+              exit 1
+            fi
+
+            # ==================== PM2 部署 ====================
+            echo "🛑 Stopping old PM2 app..."
             pm2 delete myapp 2>/dev/null || true
 
             echo "🔄 Switching release..."
@@ -102,7 +112,7 @@ jobs:
             [ -d "$RELEASE_DIR" ] && mv "$RELEASE_DIR" "$PREV_DIR"
             mv "$NEXT_DIR" "$RELEASE_DIR"
 
-            echo "🚀 Starting app with PM2..."
+            echo "🚀 Starting with PM2..."
             cd "$RELEASE_DIR"
 
             pm2 start server.js \
@@ -112,13 +122,12 @@ jobs:
               --log "$APP_DIR/app.log" \
               --time
 
-            # 保存 PM2 进程（服务器重启后自动恢复）
             pm2 save
 
-            sleep 4
+            sleep 5
 
             echo "✅ Deployment completed at $(date)"
-            echo "📊 App Status:"
-            pm2 status myapp
-            echo "📜 Last 30 logs:"
-            pm2 logs myapp --lines 30
+            echo "📊 PM2 Status:"
+            pm2 status
+            echo "📜 Last logs:"
+            pm2 logs myapp --lines 50
