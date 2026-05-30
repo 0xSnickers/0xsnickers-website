@@ -136,6 +136,151 @@ export function SaveButton() {
 }
 ```
 
+## Demo：添加 Dialog 组件
+
+以 Dialog 弹窗为例，看一下 shadcn/ui 生成组件代码的过程。
+
+### 1. 执行命令
+
+```bash
+npx shadcn@latest add dialog
+```
+
+这条命令会做几件事：
+
+- 检查 `components.json` 配置。
+- 安装 Dialog 需要的依赖。
+- 生成 Dialog 组件源码。
+- 把组件放到你的 `components/ui` 目录里。
+
+常见生成文件：
+
+```text
+src/components/ui/dialog.tsx
+```
+
+常见新增依赖：
+
+```text
+@radix-ui/react-dialog
+```
+
+Dialog 组件内部通常还会用到项目里的工具函数，比如：
+
+```ts
+import { cn } from "@/lib/utils";
+```
+
+`cn` 一般是 `clsx` + `tailwind-merge` 的封装，用来合并 className。
+
+### 2. 生成后的组件是什么
+
+生成的 `dialog.tsx` 大概会导出这些组件：
+
+```tsx
+Dialog
+DialogTrigger
+DialogContent
+DialogHeader
+DialogTitle
+DialogDescription
+DialogFooter
+DialogClose
+```
+
+这些组件不是从 `shadcn/ui` 运行时加载的，而是你项目里的本地源码。
+
+你使用时是这样导入：
+
+```tsx
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+```
+
+### 3. 在页面中使用
+
+```tsx
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+export function DeleteUserDialog() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="destructive">删除用户</Button>
+      </DialogTrigger>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>确认删除用户？</DialogTitle>
+          <DialogDescription>
+            删除后数据将无法恢复，请谨慎操作。
+          </DialogDescription>
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+这里发生了几件事：
+
+- `Dialog`：管理弹窗打开和关闭状态。
+- `DialogTrigger`：触发打开弹窗。
+- `asChild`：让 `Button` 作为真正的触发元素。
+- `DialogContent`：弹窗主体。
+- `DialogTitle` / `DialogDescription`：提供标题、描述和无障碍语义。
+
+### 4. 为什么它依赖 Radix UI
+
+Dialog 看起来只是一个弹窗，但实际包含很多交互细节：
+
+- 打开后焦点进入弹窗。
+- 按 `Esc` 可以关闭。
+- 点击遮罩可以关闭。
+- 关闭后焦点回到触发按钮。
+- 屏幕阅读器能识别标题和描述。
+
+这些底层行为通常由 `@radix-ui/react-dialog` 处理。
+
+shadcn/ui 生成的 `dialog.tsx` 主要做的是：
+
+- 引入 Radix Dialog 原语。
+- 包一层项目自己的组件命名。
+- 加上 Tailwind CSS 样式。
+- 暴露更适合项目使用的组件。
+
+### 5. 如何修改样式
+
+因为 `dialog.tsx` 已经在你的项目里，所以可以直接打开文件修改。
+
+比如你想修改弹窗宽度，可以找到 `DialogContent` 里的 className：
+
+```tsx
+"sm:max-w-lg"
+```
+
+改成：
+
+```tsx
+"sm:max-w-xl"
+```
+
+这就是 shadcn/ui 和传统组件库最大的区别：组件源码属于你的项目，不是依赖包里的黑盒。
+
 ## 适合什么场景
 
 适合：

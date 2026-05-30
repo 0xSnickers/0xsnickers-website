@@ -50,7 +50,7 @@ export const en: Translation = {
       label4: '∞',
       sub4: 'Vibes',
     },
-    projectsTitle: 'vibe coding projects',
+    projectsTitle: 'GitHub repositories',
     projectsSubtitle: '',
   },
   footer: {
@@ -80,7 +80,7 @@ export const zh: Translation = {
       label4: '∞',
       sub4: '氛围',
     },
-    projectsTitle: 'vibe coding 项目',
+    projectsTitle: 'GitHub 仓库',
     projectsSubtitle: '',
   },
   footer: {

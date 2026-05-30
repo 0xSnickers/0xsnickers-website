@@ -8,10 +8,14 @@ import {
   Sparkles,
 } from 'lucide-react';
 import Image from 'next/image';
-import { projects, getIconComponent, getProjectByLanguage } from '@/data/projects';
+import { getIconComponent, getProjectByLanguage, type Project } from '@/data/projects';
 import { useLanguage } from '@/i18n/LanguageContext';
 
-export default function Hero() {
+type HeroProps = {
+  projects: Project[];
+};
+
+export default function Hero({ projects }: HeroProps) {
   const { t, language } = useLanguage();
 
   return (

@@ -50,7 +50,7 @@ export default function Navbar() {
             <Link href="/" className="flex items-center gap-3" onClick={() => setIsOpen(false)}>
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl overflow-hidden shadow-[0_10px_25px_rgba(14,165,233,0.28)]">
                 <Image
-                  src="/images/avatar.jpg"
+                  src="/images/favicon.jpg"
                   alt="Logo"
                   width={44}
                   height={44}

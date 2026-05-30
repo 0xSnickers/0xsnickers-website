@@ -1,4 +1,4 @@
-import { Code2, Palette, Terminal, Globe, Database, Layers } from 'lucide-react';
+import { Code2, Palette, Terminal, Globe, Database, Layers, Github } from 'lucide-react';
 import projectsJson from './projects.json';
 
 export interface Project {
@@ -44,6 +44,7 @@ const iconMap = {
   Globe,
   Database,
   Layers,
+  Github,
 };
 
 const data: ProjectsData = projectsJson as ProjectsData;
@@ -64,4 +65,3 @@ export function getProjectByLanguage(project: Project, lang: 'en' | 'zh') {
     tags: project.tags[lang],
   };
 }
-
