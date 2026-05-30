@@ -1,0 +1,134 @@
+---
+title: shadcn/ui
+description: 用通俗方式理解 shadcn/ui 的作用和使用方式。
+---
+
+`shadcn/ui` 不是传统意义上的组件库。
+
+更准确地说，它是一套“可以复制到项目里的组件代码模板”。你通过命令把 Button、Dialog、Form、Table 这些组件添加到自己的项目中，添加完成后，这些组件就变成你项目源码的一部分，可以随便改样式、改结构、改逻辑。
+
+## 它解决什么问题
+
+平时做后台、官网、工具型产品时，经常会遇到这些重复工作：
+
+- 按钮、输入框、弹窗、下拉框、表单样式每个项目都要重新写。
+- 想用成熟组件库，但又担心样式太固定，后面不好改。
+- 想自己写组件，但弹窗焦点、键盘操作、无障碍这些细节容易漏。
+- Tailwind CSS 项目里需要一套统一、好看的基础 UI。
+
+`shadcn/ui` 的价值就是：帮你快速拿到一套默认好看、结构清晰、能直接修改的组件。
+
+## 它和普通组件库的区别
+
+普通组件库一般是这样用：
+
+```tsx
+import { Button } from "某个组件库";
+```
+
+组件代码在依赖包里，你主要通过 props 或主题配置去控制它。
+
+`shadcn/ui` 更像这样：
+
+```tsx
+import { Button } from "@/components/ui/button";
+```
+
+`Button` 文件就在你的项目中。它不是黑盒，打开就能改。
+
+这意味着：
+
+- 组件样式完全属于当前项目。
+- 不需要等组件库支持某个设计需求。
+- 可以按业务需要删减或扩展组件。
+- 项目后期维护时，更容易统一设计风格。
+
+## 它通常依赖什么
+
+`shadcn/ui` 常见组合是：
+
+- React / Next.js：组件运行环境。
+- Tailwind CSS：负责样式编写。
+- `class-variance-authority`：管理按钮大小、颜色、状态这类变体。
+- `@radix-ui`：提供弹窗、菜单、Tabs、Tooltip 等组件的底层交互能力。
+- `lucide-react`：提供常用图标。
+
+可以把它理解成：
+
+> shadcn/ui 负责“把 UI 组件整理成好用、好看的项目代码”，Radix UI 负责“复杂交互组件的底层行为”。
+
+## 基本使用方式
+
+初始化：
+
+```bash
+npx shadcn@latest init
+```
+
+添加组件：
+
+```bash
+npx shadcn@latest add button
+npx shadcn@latest add dialog
+npx shadcn@latest add form
+```
+
+使用组件：
+
+```tsx
+import { Button } from "@/components/ui/button";
+
+export function SaveButton() {
+  return <Button>保存</Button>;
+}
+```
+
+添加后的组件一般会放在：
+
+```text
+src/components/ui/
+```
+
+具体路径取决于项目初始化时的配置。
+
+## 什么时候适合用
+
+适合：
+
+- Next.js / React 项目。
+- 使用 Tailwind CSS 的项目。
+- 后台系统、工具产品、SaaS、内容站、个人项目。
+- 希望组件好看，但又想保留完全修改权。
+- 希望 AI Agent 后续能直接读懂并修改组件源码。
+
+不太适合：
+
+- 不使用 React 的项目。
+- 团队已经有稳定设计系统和完整组件库。
+- 希望安装依赖后“全局自动升级所有组件”的场景。
+
+## 使用建议
+
+不要一次性把所有组件都装进项目。
+
+建议按需添加：
+
+```bash
+npx shadcn@latest add button
+npx shadcn@latest add input
+npx shadcn@latest add dialog
+```
+
+每次需要什么组件再添加什么组件，这样项目更轻，后续也更好维护。
+
+在项目中可以约定：
+
+- `components/ui`：只放 shadcn/ui 这类基础 UI 组件。
+- `components/common`：放项目通用业务无关组件。
+- `components/feature`：放具体业务模块组件。
+
+这样可以避免基础组件和业务组件混在一起。
+
+## 一句话总结
+
+`shadcn/ui` 是一套适合 React / Next.js + Tailwind 项目的 UI 组件代码生成方案。它最大的特点不是“装了一个组件库”，而是“把可维护、可修改的组件源码放进你的项目里”。

@@ -1,0 +1,215 @@
+---
+title: Tailwind CSS
+description: 用通俗方式理解 Tailwind CSS 的作用和使用方式。
+---
+
+`Tailwind CSS` 是一个原子化 CSS 框架。
+
+通俗地说，它把常用 CSS 能力拆成很多小 class。你不需要先起一个类名，再去 CSS 文件里写样式，而是直接在 HTML 或组件里组合这些 class。
+
+比如传统写法可能是：
+
+```tsx
+<button className="save-button">保存</button>
+```
+
+```css
+.save-button {
+  border-radius: 6px;
+  background: black;
+  padding: 8px 16px;
+  color: white;
+}
+```
+
+Tailwind CSS 写法更像：
+
+```tsx
+<button className="rounded-md bg-black px-4 py-2 text-white">
+  保存
+</button>
+```
+
+样式就在组件旁边，一眼能看到这个按钮大概长什么样。
+
+## 它解决什么问题
+
+写 CSS 时经常会遇到这些问题：
+
+- 类名越来越多，不知道该怎么命名。
+- CSS 文件越写越大，很难判断哪些样式还在用。
+- 同一个间距、颜色、字号在不同页面写得不一致。
+- 改一个全局 class，可能影响很多不知道的地方。
+- 组件迁移时，还要记得把对应 CSS 一起搬过去。
+
+Tailwind CSS 的核心价值是：把常用样式变成稳定、可组合的工具类，让页面样式更贴近组件本身，也更容易保持一致。
+
+## 它具体做什么
+
+Tailwind CSS 提供很多工具类，例如：
+
+- `flex`：设置 `display: flex`。
+- `items-center`：垂直居中。
+- `justify-between`：两端对齐。
+- `p-4`：设置内边距。
+- `mt-6`：设置上边距。
+- `text-sm`：设置小字号。
+- `font-medium`：设置中等字重。
+- `rounded-md`：设置中等圆角。
+- `bg-white`：设置白色背景。
+- `text-zinc-900`：设置文字颜色。
+
+这些 class 可以像积木一样组合：
+
+```tsx
+<div className="flex items-center justify-between rounded-md border p-4">
+  <span className="text-sm font-medium">账户余额</span>
+  <span className="text-zinc-900">$128.00</span>
+</div>
+```
+
+它不要求你完全不写 CSS，而是把大部分常见样式都交给工具类处理。真正复杂、全局或特殊的样式，仍然可以写在 CSS 文件里。
+
+## 基本使用方式
+
+在项目里安装：
+
+```bash
+npm install tailwindcss @tailwindcss/postcss
+```
+
+在 PostCSS 配置中启用：
+
+```js
+const config = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
+
+export default config;
+```
+
+在全局 CSS 中引入：
+
+```css
+@import "tailwindcss";
+```
+
+然后就可以在组件里使用 Tailwind class：
+
+```tsx
+export function ProfileCard() {
+  return (
+    <section className="rounded-md border bg-white p-6 shadow-sm">
+      <h2 className="text-lg font-semibold">个人资料</h2>
+      <p className="mt-2 text-sm text-zinc-600">
+        管理账户信息和偏好设置。
+      </p>
+    </section>
+  );
+}
+```
+
+当前项目已经使用了 Tailwind CSS 4，入口在 `src/app/globals.css`：
+
+```css
+@import "tailwindcss";
+```
+
+## 常见写法
+
+布局：
+
+```tsx
+<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+  <div>Card 1</div>
+  <div>Card 2</div>
+  <div>Card 3</div>
+</div>
+```
+
+响应式：
+
+```tsx
+<div className="p-4 md:p-6 lg:p-8">
+  内容区域
+</div>
+```
+
+状态样式：
+
+```tsx
+<button className="rounded-md bg-black px-4 py-2 text-white hover:bg-zinc-800 disabled:opacity-50">
+  提交
+</button>
+```
+
+暗色模式或主题可以根据项目配置继续扩展。
+
+## 和 shadcn/ui 的关系
+
+`shadcn/ui` 默认大量使用 Tailwind CSS。
+
+可以这样理解：
+
+- Tailwind CSS：提供样式工具类。
+- Radix UI：提供复杂组件的交互能力。
+- shadcn/ui：把 Tailwind CSS 和 Radix UI 组合成可以直接放进项目的组件源码。
+
+例如一个 shadcn/ui 的 Button，本质上通常就是一个 React 组件，里面写了 Tailwind class 来控制大小、颜色、圆角和状态。
+
+## 什么时候适合用
+
+适合：
+
+- React / Next.js / Vue 等组件化项目。
+- 希望样式跟组件放得更近。
+- 希望减少 CSS 命名成本。
+- 希望项目的间距、颜色、字号更统一。
+- 需要快速搭建后台、工具、官网、文档站等界面。
+
+不太适合：
+
+- 团队非常依赖传统 CSS 命名和样式分层。
+- 项目已有完整设计系统和成熟 CSS 规范，迁移成本很高。
+- 页面样式极少，使用 Tailwind 反而增加理解成本。
+
+## 使用建议
+
+不要把 Tailwind class 当成随手乱写的快捷方式。
+
+建议保持几个习惯：
+
+- 常见布局直接用工具类。
+- 重复出现的 UI 抽成组件，而不是复制一长串 class。
+- 颜色、字号、间距尽量使用 Tailwind 的设计刻度。
+- 复杂状态可以结合 `clsx`、`cn` 或组件变体工具管理。
+- 页面级布局保持清晰，避免一个元素塞入过长的 class。
+
+比如重复按钮不要到处复制：
+
+```tsx
+<button className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800">
+  保存
+</button>
+```
+
+更好的方式是抽成基础组件：
+
+```tsx
+export function Button(props: React.ComponentProps<"button">) {
+  return (
+    <button
+      {...props}
+      className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+    />
+  );
+}
+```
+
+这样既保留 Tailwind 的开发效率，也能保证项目 UI 一致。
+
+## 一句话总结
+
+Tailwind CSS 是一套把常用 CSS 封装成工具类的样式方案。它让开发者可以直接在组件里组合样式，减少命名和全局样式维护成本；和 shadcn/ui、Radix UI 搭配时，它主要负责“组件长什么样”。
