@@ -78,7 +78,7 @@ function mapRepositoryToProject(repo: GitHubRepository, index: number): Project 
 }
 
 export async function getGitHubRepositoryProjects(): Promise<Project[]> {
-  const token = process.env.GITHUB_TOKEN;
+  const token = process.env.PROJECT_GITHUB_TOKEN;
 
   if (!token) {
     return fallbackProjects;

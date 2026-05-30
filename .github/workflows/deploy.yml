@@ -31,6 +31,7 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          PROJECT_GITHUB_TOKEN: ${{ secrets.PROJECT_GITHUB_TOKEN }}
 
       - name: Pack release artifact
         run: |
@@ -44,11 +45,12 @@ jobs:
           test -d release/.next/static/chunks
           find release/.next/static -maxdepth 2 -type f | head -20
 
-          if [ -f .env.production ]; then
-            cp .env.production release/.env
-          elif [ -f .env.local ]; then
-            cp .env.local release/.env
-          fi
+          # 动态生成 .env 文件
+          # 这样可以确保 PROJECT_GITHUB_TOKEN 总是取自你最新的 GitHub Secrets
+          echo "PROJECT_GITHUB_TOKEN=${{ secrets.PROJECT_GITHUB_TOKEN }}" > release/.env
+          
+          # 如果你有其他环境变量，也可以继续追加
+          # echo "OTHER_SECRET=${{ secrets.OTHER_SECRET }}" >> release/.env
 
           tar -czf release.tar.gz -C release .
           ls -lh release.tar.gz
