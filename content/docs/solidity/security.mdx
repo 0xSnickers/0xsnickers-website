@@ -1,0 +1,93 @@
+---
+title: 安全基础
+description: Solidity 常见安全风险和注意事项。
+---
+
+Solidity 合约部署后运行在链上，资产和权限都是真实的，所以安全比普通后端代码更重要。
+
+## 权限控制
+
+敏感函数必须做权限检查。
+
+```solidity
+address public owner;
+
+modifier onlyOwner() {
+    require(msg.sender == owner, "Not owner");
+    _;
+}
+
+function setFee(uint256 fee) external onlyOwner {
+    // update fee
+}
+```
+
+没有权限控制的管理函数，很容易被任何人调用。
+
+## 重入攻击
+
+重入攻击通常发生在合约向外部地址转账时，外部合约又回调回来重复执行。
+
+危险模式：
+
+```solidity
+function withdraw() external {
+    uint256 amount = balances[msg.sender];
+    (bool ok, ) = msg.sender.call{value: amount}("");
+    require(ok, "Transfer failed");
+    balances[msg.sender] = 0;
+}
+```
+
+更安全的顺序是：先改状态，再外部调用。
+
+```solidity
+function withdraw() external {
+    uint256 amount = balances[msg.sender];
+    balances[msg.sender] = 0;
+
+    (bool ok, ) = msg.sender.call{value: amount}("");
+    require(ok, "Transfer failed");
+}
+```
+
+## 外部调用
+
+外部调用要谨慎：
+
+- 对方合约可能失败。
+- 对方合约可能恶意回调。
+- 调用结果必须检查。
+
+```solidity
+(bool success, ) = target.call(data);
+require(success, "Call failed");
+```
+
+## 整数溢出
+
+Solidity 0.8+ 默认会检查整数溢出。
+
+但如果使用 `unchecked`，要自己保证安全：
+
+```solidity
+unchecked {
+    count += 1;
+}
+```
+
+只有在明确需要省 gas 且不会溢出时才使用。
+
+## 常见建议
+
+- 管理函数加权限。
+- 先改状态，再外部调用。
+- 检查外部调用返回值。
+- 重要操作 emit event。
+- 不要相信外部输入。
+- 升级合约要保持存储布局。
+- 上线前做测试和审计。
+
+## 总结
+
+Solidity 安全的核心是：权限要明确，外部调用要谨慎，状态更新顺序要正确。合约一旦上线，错误成本通常比普通应用高很多。

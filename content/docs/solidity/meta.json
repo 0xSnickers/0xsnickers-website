@@ -4,7 +4,12 @@
   "root": true,
   "pages": [
     "index",
+    "contract-basics",
+    "storage",
+    "functions-events",
+    "security",
     "delegatecall",
+    "amm-lp",
     "..."
   ]
 }

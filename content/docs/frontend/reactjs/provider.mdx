@@ -1,0 +1,201 @@
+---
+title: Provider
+description: React Provider 解决的问题、使用方式和注意事项。
+---
+
+Provider 通常指 React Context 的提供者，用来在一棵组件树里共享数据。
+
+通俗地说：如果很多层子组件都需要同一份数据，不想一层一层通过 props 往下传，就可以用 Context + Provider。
+
+## 解决什么问题
+
+假设组件结构是这样：
+
+```text
+Page
+└── UserPanel
+    └── UserToolbar
+        └── UserName
+```
+
+如果 `UserName` 需要用户信息，而用户信息在 `Page`，就要这样传：
+
+```tsx
+<UserPanel user={user} />
+```
+
+然后 `UserPanel` 再传给 `UserToolbar`，`UserToolbar` 再传给 `UserName`。
+
+这种层层传递叫 prop drilling。层级少时没问题，层级多了会很难维护。
+
+Provider 可以让深层组件直接读取上下文：
+
+```tsx
+<UserProvider user={user}>
+  <UserPanel />
+</UserProvider>
+```
+
+深层组件：
+
+```tsx
+const user = useUserContext();
+```
+
+## 使用方式
+
+先创建 Context：
+
+```tsx
+import { createContext, useContext } from "react";
+import type { ReactNode } from "react";
+
+type User = {
+  id: string;
+  name: string;
+};
+
+type UserContextValue = {
+  user: User;
+};
+
+const UserContext = createContext<UserContextValue | null>(null);
+```
+
+创建 Provider：
+
+```tsx
+export function UserProvider({
+  user,
+  children,
+}: {
+  user: User;
+  children: ReactNode;
+}) {
+  return (
+    <UserContext.Provider value={{ user }}>
+      {children}
+    </UserContext.Provider>
+  );
+}
+```
+
+封装读取 Hook：
+
+```tsx
+export function useUserContext() {
+  const context = useContext(UserContext);
+
+  if (!context) {
+    throw new Error("useUserContext must be used within UserProvider");
+  }
+
+  return context;
+}
+```
+
+使用：
+
+```tsx
+export function Page() {
+  const user = { id: "1", name: "Alice" };
+
+  return (
+    <UserProvider user={user}>
+      <UserPanel />
+    </UserProvider>
+  );
+}
+```
+
+子组件读取：
+
+```tsx
+export function UserName() {
+  const { user } = useUserContext();
+
+  return <span>{user.name}</span>;
+}
+```
+
+## 适合使用的场景
+
+适合：
+
+- 主题、语言、当前用户这类应用级信息。
+- 当前页面内多个组件共享筛选条件。
+- 一个功能模块内部共享选中项、编辑模式、步骤状态。
+- 多层组件都依赖同一份上下文。
+
+不太适合：
+
+- 只有父子两层传值。
+- 单个组件内部状态。
+- 所有接口数据缓存。
+- 高频变化的大对象，比如输入框每个字符都更新的大表单。
+
+## 注意事项
+
+Provider 的 `value` 变化时，读取这个 Context 的组件都会重新渲染。
+
+下面这种写法每次父组件渲染都会创建新对象：
+
+```tsx
+<UserContext.Provider value={{ user, logout }}>
+  {children}
+</UserContext.Provider>
+```
+
+如果 Provider 内部还有状态，或者 value 传给很多组件，可以用 `useMemo` 稳定 value：
+
+```tsx
+const value = useMemo(() => {
+  return { user, logout };
+}, [user, logout]);
+
+return (
+  <UserContext.Provider value={value}>
+    {children}
+  </UserContext.Provider>
+);
+```
+
+如果 `logout` 是函数，也可以配合 `useCallback`：
+
+```tsx
+const logout = useCallback(() => {
+  clearToken();
+}, []);
+```
+
+## 不要把 Provider 当万能 store
+
+Provider 很适合共享“局部上下文”，但不适合无限扩张。
+
+如果状态跨很多页面、需要持久化、需要在任意地方读写，可以考虑 Zustand、Redux 这类状态库。
+
+如果是接口数据，比如列表、详情、分页，优先考虑 TanStack Query / SWR，而不是全部塞进 Provider。
+
+## 常见文件组织
+
+可以把 Provider 放在：
+
+```text
+src/providers/
+└── UserProvider.tsx
+```
+
+或者放在具体功能模块旁边：
+
+```text
+src/components/feature/users/
+├── UserList.tsx
+├── UserListProvider.tsx
+└── useUserListContext.ts
+```
+
+如果只有某个功能模块使用，放在功能目录附近更容易维护。
+
+## 总结
+
+Provider 解决的是“多层组件共享同一份数据，不想层层传 props”的问题。它适合页面或功能模块上下文，但不要把所有状态和接口数据都塞进去；使用时注意 `value` 变化会触发消费组件重新渲染。

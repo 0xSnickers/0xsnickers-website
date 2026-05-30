@@ -1,0 +1,102 @@
+---
+title: 组件通信
+description: Vue 3 props、emit、v-model 和 provide / inject 的使用方式。
+---
+
+组件通信就是组件之间传数据和通知事件。
+
+## props
+
+父组件向子组件传数据，用 props。
+
+```vue
+<script setup lang="ts">
+defineProps<{
+  name: string;
+}>();
+</script>
+
+<template>
+  <div>{{ name }}</div>
+</template>
+```
+
+适合父传子。
+
+## emit
+
+子组件通知父组件，用 emit。
+
+```vue
+<script setup lang="ts">
+const emit = defineEmits<{
+  save: [value: string];
+}>();
+</script>
+
+<template>
+  <button @click="emit('save', 'ok')">保存</button>
+</template>
+```
+
+适合子传父，比如点击保存、关闭弹窗、选择某项。
+
+## v-model
+
+`v-model` 常用于表单双向绑定。
+
+```vue
+<script setup lang="ts">
+const name = ref("");
+</script>
+
+<template>
+  <input v-model="name" />
+</template>
+```
+
+自定义组件里的 `v-model` 本质是：
+
+- `modelValue`
+- `update:modelValue`
+
+适合封装输入框、选择器、弹窗开关。
+
+## provide / inject
+
+当组件层级很深时，可以用 `provide / inject` 共享上下文。
+
+```ts
+provide("theme", theme);
+```
+
+深层组件读取：
+
+```ts
+const theme = inject("theme");
+```
+
+适合：
+
+- 表单上下文。
+- 主题配置。
+- 一个功能模块内部共享状态。
+
+## 怎么选择
+
+- 父传子：props。
+- 子传父：emit。
+- 表单绑定：v-model。
+- 多层共享：provide / inject。
+- 跨页面共享：Pinia。
+
+## 注意事项
+
+- 简单父子关系优先用 props / emit。
+- 不要为了省事把所有状态都放 Pinia。
+- provide / inject 适合局部上下文，太多会让数据来源不明显。
+- 自定义组件使用 v-model 时，要把事件名写清楚。
+
+## 总结
+
+Vue 组件通信优先从简单方式开始：父传子用 props，子传父用 emit，表单用 v-model，多层共享再考虑 provide / inject。

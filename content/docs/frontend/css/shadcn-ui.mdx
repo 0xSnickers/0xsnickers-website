@@ -1,61 +1,114 @@
 ---
 title: shadcn/ui
-description: 用通俗方式理解 shadcn/ui 的作用和使用方式。
+description: 📒 shadcn/ui 的作用和使用方式。
 ---
 
 `shadcn/ui` 不是传统意义上的组件库。
 
-更准确地说，它是一套“可以复制到项目里的组件代码模板”。你通过命令把 Button、Dialog、Form、Table 这些组件添加到自己的项目中，添加完成后，这些组件就变成你项目源码的一部分，可以随便改样式、改结构、改逻辑。
+它更像一套“组件代码生成工具”：通过 CLI 把 Button、Dialog、Input 这些组件代码添加到你的项目里。添加完成后，组件文件就在你的项目源码中，可以直接修改。
 
 ## 它解决什么问题
 
-平时做后台、官网、工具型产品时，经常会遇到这些重复工作：
+做 React / Next.js 项目时，经常会重复写这些基础 UI：
 
-- 按钮、输入框、弹窗、下拉框、表单样式每个项目都要重新写。
-- 想用成熟组件库，但又担心样式太固定，后面不好改。
-- 想自己写组件，但弹窗焦点、键盘操作、无障碍这些细节容易漏。
-- Tailwind CSS 项目里需要一套统一、好看的基础 UI。
+- Button
+- Input
+- Dialog
+- Dropdown
+- Tabs
+- Form
 
-`shadcn/ui` 的价值就是：帮你快速拿到一套默认好看、结构清晰、能直接修改的组件。
+如果完全自己写，样式、交互、无障碍细节都要处理；如果使用传统组件库，组件又常常被封装在依赖包里，不太好深度修改。
 
-## 它和普通组件库的区别
+`shadcn/ui` 的思路是：直接把一份结构清晰、默认好看的组件源码放进项目，让你既能快速开始，也能自由修改。
 
-普通组件库一般是这样用：
+## 它的工作方式
 
-```tsx
-import { Button } from "某个组件库";
+`shadcn/ui` 的核心不是运行时组件库，而是 CLI。
+
+CLI 主要负责：
+
+- 初始化项目配置。
+- 生成 `components.json`。
+- 添加组件源码。
+- 安装组件需要的依赖。
+
+比如执行：
+
+```bash
+npx shadcn@latest init
 ```
 
-组件代码在依赖包里，你主要通过 props 或主题配置去控制它。
+会生成类似：
 
-`shadcn/ui` 更像这样：
+```text
+components.json
+```
+
+再执行：
+
+```bash
+npx shadcn@latest add button
+```
+
+会生成类似：
+
+```text
+src/components/ui/button.tsx
+```
+
+之后你在项目里使用的是本地文件：
 
 ```tsx
 import { Button } from "@/components/ui/button";
 ```
 
-`Button` 文件就在你的项目中。它不是黑盒，打开就能改。
+也就是说，运行时并不是从 `shadcn/ui` 这个包里 import Button，而是从你项目自己的 `components/ui/button.tsx` 里 import。
 
-这意味着：
+## 运行时依赖
 
-- 组件样式完全属于当前项目。
-- 不需要等组件库支持某个设计需求。
-- 可以按业务需要删减或扩展组件。
-- 项目后期维护时，更容易统一设计风格。
+生成后的组件代码会用到一些实际依赖。
 
-## 它通常依赖什么
+常见依赖包括：
 
-`shadcn/ui` 常见组合是：
+- `@radix-ui/react-slot`：让组件可以把样式和行为传给子元素，常用于 `asChild`。
+- `class-variance-authority`：管理组件变体，比如按钮的大小、颜色、样式类型。
+- `clsx`：按条件拼接 className。
+- `tailwind-merge`：合并 Tailwind class，避免冲突。
+- `lucide-react`：常用图标。
 
-- React / Next.js：组件运行环境。
-- Tailwind CSS：负责样式编写。
-- `class-variance-authority`：管理按钮大小、颜色、状态这类变体。
-- `@radix-ui`：提供弹窗、菜单、Tabs、Tooltip 等组件的底层交互能力。
-- `lucide-react`：提供常用图标。
+所以可以这样理解：
 
-可以把它理解成：
+- `shadcn CLI`：负责生成和添加代码。
+- `components.json`：记录组件生成配置。
+- `src/components/ui/*`：真正存在项目里的组件源码。
+- `@radix-ui/*`、`class-variance-authority`、`clsx` 等：组件运行时真正用到的依赖。
 
-> shadcn/ui 负责“把 UI 组件整理成好用、好看的项目代码”，Radix UI 负责“复杂交互组件的底层行为”。
+## 和普通组件库的区别
+
+普通组件库通常这样用：
+
+```tsx
+import { Button } from "some-ui-library";
+```
+
+组件源码在依赖包里，你主要通过 props、主题配置或覆盖样式来调整。
+
+`shadcn/ui` 通常这样用：
+
+```tsx
+import { Button } from "@/components/ui/button";
+```
+
+组件源码就在项目里。你可以直接改：
+
+- JSX 结构。
+- Tailwind class。
+- 组件 props。
+- 变体配置。
+- 默认交互。
+
+这也是它最重要的特点：不是安装一套黑盒组件，而是把可维护的组件源码放进项目。
 
 ## 基本使用方式
 
@@ -65,12 +118,12 @@ import { Button } from "@/components/ui/button";
 npx shadcn@latest init
 ```
 
-添加组件：
+按需添加组件：
 
 ```bash
 npx shadcn@latest add button
 npx shadcn@latest add dialog
-npx shadcn@latest add form
+npx shadcn@latest add input
 ```
 
 使用组件：
@@ -83,52 +136,40 @@ export function SaveButton() {
 }
 ```
 
-添加后的组件一般会放在：
-
-```text
-src/components/ui/
-```
-
-具体路径取决于项目初始化时的配置。
-
-## 什么时候适合用
+## 适合什么场景
 
 适合：
 
-- Next.js / React 项目。
+- React / Next.js 项目。
 - 使用 Tailwind CSS 的项目。
-- 后台系统、工具产品、SaaS、内容站、个人项目。
-- 希望组件好看，但又想保留完全修改权。
-- 希望 AI Agent 后续能直接读懂并修改组件源码。
+- 希望快速拥有一套基础 UI。
+- 希望组件源码可以直接修改。
+- 希望和 Radix UI、lucide-react 等生态搭配使用。
 
 不太适合：
 
-- 不使用 React 的项目。
-- 团队已经有稳定设计系统和完整组件库。
-- 希望安装依赖后“全局自动升级所有组件”的场景。
+- 非 React 项目。
+- 不使用 Tailwind CSS 的项目。
+- 希望通过升级依赖自动更新所有组件的场景。
 
 ## 使用建议
 
-不要一次性把所有组件都装进项目。
+不要一次性添加所有组件。
 
-建议按需添加：
+建议需要什么加什么：
 
 ```bash
 npx shadcn@latest add button
-npx shadcn@latest add input
-npx shadcn@latest add dialog
 ```
 
-每次需要什么组件再添加什么组件，这样项目更轻，后续也更好维护。
+项目里可以约定：
 
-在项目中可以约定：
-
-- `components/ui`：只放 shadcn/ui 这类基础 UI 组件。
-- `components/common`：放项目通用业务无关组件。
+- `components/ui`：放 shadcn/ui 生成的基础组件。
+- `components/common`：放业务无关的通用组件。
 - `components/feature`：放具体业务模块组件。
 
-这样可以避免基础组件和业务组件混在一起。
+这样基础 UI 和业务组件会更清楚。
 
-## 一句话总结
+## 总结
 
-`shadcn/ui` 是一套适合 React / Next.js + Tailwind 项目的 UI 组件代码生成方案。它最大的特点不是“装了一个组件库”，而是“把可维护、可修改的组件源码放进你的项目里”。
+`shadcn/ui` 的重点是“生成组件源码”，不是“提供运行时组件库”。CLI 负责把代码添加到项目，真正运行的是项目里的 `src/components/ui/*` 文件，以及这些组件用到的 Radix UI、CVA、clsx、tailwind-merge、lucide-react 等依赖。

@@ -1,0 +1,89 @@
+---
+title: Composables
+description: Vue 3 composables 解决的问题、使用方式和注意事项。
+---
+
+Composables 是 Vue 3 复用逻辑的方式，通常以 `use` 开头。
+
+## 解决什么问题
+
+如果多个组件都有相同逻辑，比如分页、搜索、防抖、弹窗开关，就不适合复制粘贴。
+
+可以把这些逻辑抽成 composable。
+
+## 基本写法
+
+```ts
+import { ref } from "vue";
+
+export function useDialog() {
+  const open = ref(false);
+
+  function show() {
+    open.value = true;
+  }
+
+  function hide() {
+    open.value = false;
+  }
+
+  return {
+    open,
+    show,
+    hide,
+  };
+}
+```
+
+组件中使用：
+
+```vue
+<script setup lang="ts">
+const { open, show, hide } = useDialog();
+</script>
+```
+
+## 适合抽取的逻辑
+
+适合：
+
+- 分页。
+- 搜索筛选。
+- 弹窗开关。
+- 倒计时。
+- 数据请求流程。
+- 浏览器事件监听。
+
+不适合：
+
+- 只有两三行且不会复用的状态。
+- 和组件 UI 强绑定、抽出来更难读的逻辑。
+- 一个 composable 里塞太多不相关功能。
+
+## 生命周期
+
+composable 可以使用 Vue 生命周期：
+
+```ts
+export function useWindowResize(callback: () => void) {
+  window.addEventListener("resize", callback);
+
+  onBeforeUnmount(() => {
+    window.removeEventListener("resize", callback);
+  });
+}
+```
+
+这样组件卸载时可以自动清理监听。
+
+## 注意事项
+
+- 命名用 `useXxx`。
+- 返回值尽量清楚。
+- 一个 composable 只解决一类问题。
+- 如果内部有事件监听、定时器，要记得清理。
+- 不要把 composable 写成隐藏的全局状态。
+
+## 总结
+
+Composables 用来复用逻辑，不是复用 UI。页面逻辑重复时抽 composable，界面重复时抽组件。

@@ -1,6 +1,251 @@
 ---
-title: NextJS
-description: Next.js App Router、部署和工程实践笔记。
+title: Next.js
+description: Next.js 项目开发常用知识点。
 ---
 
-这里放 Next.js App Router、服务端渲染、部署和工程化记录。
+Next.js 是基于 React 的应用框架。React 主要负责 UI，Next.js 额外提供路由、渲染模式、数据缓存、服务端能力和部署约定。
+
+项目开发中，Next.js 最重要的是理解：哪些代码在服务端执行，哪些代码在浏览器执行。
+
+相关笔记：
+
+- [App Router](/docs/frontend/nextjs/app-router)：理解文件路由、布局、加载和错误边界。
+- [Server / Client Component](/docs/frontend/nextjs/server-client-component)：理解服务端组件和客户端组件的边界。
+- [数据请求和缓存](/docs/frontend/nextjs/data-cache)：理解 `fetch` 缓存、`no-store` 和 `revalidate`。
+- [Route Handler 和 Server Action](/docs/frontend/nextjs/route-handler-server-action)：理解接口路由和服务端动作的使用边界。
+
+## App Router
+
+App Router 使用文件夹表示路由。
+
+常见文件：
+
+- `page.tsx`：页面。
+- `layout.tsx`：布局。
+- `loading.tsx`：加载状态。
+- `error.tsx`：错误兜底。
+- `not-found.tsx`：404 页面。
+- `route.ts`：接口路由。
+
+示例：
+
+```text
+app/
+├── layout.tsx
+├── page.tsx
+└── users/
+    ├── page.tsx
+    ├── loading.tsx
+    └── error.tsx
+```
+
+访问 `/users` 时，会渲染 `app/users/page.tsx`。
+
+## Server Component
+
+App Router 默认组件是 Server Component。
+
+适合做：
+
+- 首屏数据获取。
+- 读取服务端环境变量。
+- 渲染不需要交互的内容。
+- 减少浏览器 JavaScript 体积。
+
+```tsx
+export default async function UsersPage() {
+  const users = await getUsers();
+
+  return <UserList users={users} />;
+}
+```
+
+Server Component 不能使用 `useState`、`useEffect`、浏览器事件和 `window`。
+
+## Client Component
+
+需要浏览器交互时，使用 Client Component。
+
+文件顶部加：
+
+```tsx
+"use client";
+```
+
+适合做：
+
+- 点击、输入、弹窗。
+- `useState`、`useEffect`。
+- Zustand 等客户端状态。
+- `localStorage`、`window` 等浏览器 API。
+
+```tsx
+"use client";
+
+import { useState } from "react";
+
+export function LikeButton() {
+  const [liked, setLiked] = useState(false);
+
+  return (
+    <button onClick={() => setLiked((value) => !value)}>
+      {liked ? "已喜欢" : "喜欢"}
+    </button>
+  );
+}
+```
+
+经验：不要把整页都改成 Client Component，只把需要交互的部分拆出来。
+
+## 渲染模式
+
+Next.js 常见渲染方式：
+
+- SSR：请求时在服务端渲染。
+- SSG：构建时生成静态页面。
+- ISR：静态页面按时间重新生成。
+- CSR：浏览器端渲染交互内容。
+
+大致选择：
+
+- 内容固定、变化少：SSG。
+- 内容可缓存、定期更新：ISR。
+- 登录后用户数据：SSR 或客户端请求。
+- 强交互区域：Client Component。
+
+## 数据请求和缓存
+
+Server Component 中可以直接请求数据。
+
+```tsx
+const res = await fetch("https://api.example.com/users", {
+  cache: "no-store",
+});
+```
+
+常见缓存选项：
+
+- `force-cache`：默认缓存，适合稳定内容。
+- `no-store`：不缓存，适合实时数据和用户数据。
+- `next: { revalidate: 60 }`：60 秒后可重新生成。
+
+```tsx
+await fetch("https://api.example.com/posts", {
+  next: { revalidate: 60 },
+});
+```
+
+缓存策略要根据业务决定，不要所有接口都默认缓存。
+
+## Route Handler
+
+`route.ts` 可以写接口。
+
+```ts
+export async function GET() {
+  return Response.json({ ok: true });
+}
+```
+
+适合：
+
+- BFF 聚合接口。
+- 代理后端请求。
+- 处理 Webhook。
+- 使用不能暴露到浏览器的密钥。
+
+不适合把整个后端业务都塞进 Next.js，复杂业务最好仍然有独立后端服务。
+
+## Server Action
+
+Server Action 可以让表单或操作直接调用服务端函数。
+
+```tsx
+async function createUser(formData: FormData) {
+  "use server";
+
+  const name = formData.get("name");
+  await saveUser(name);
+}
+
+export function UserForm() {
+  return (
+    <form action={createUser}>
+      <input name="name" />
+      <button type="submit">保存</button>
+    </form>
+  );
+}
+```
+
+它适合简单提交、服务端写操作，但复杂交互表单仍然可以继续用客户端请求。
+
+## 环境变量
+
+Next.js 环境变量分两类：
+
+- 服务端变量：普通变量名，比如 `API_SECRET`。
+- 客户端变量：必须以 `NEXT_PUBLIC_` 开头。
+
+注意：
+
+- 密钥不要加 `NEXT_PUBLIC_`。
+- 加了 `NEXT_PUBLIC_` 就会暴露给浏览器。
+- 前端可见变量都应该当作公开信息。
+
+## 图片和字体
+
+Next.js 提供优化组件：
+
+- `next/image`：图片优化、尺寸控制、懒加载。
+- `next/font`：字体加载优化。
+
+图片最好设置明确宽高，避免页面布局抖动。
+
+```tsx
+import Image from "next/image";
+
+<Image src="/avatar.png" alt="avatar" width={80} height={80} />;
+```
+
+## 错误和加载状态
+
+App Router 可以按路由提供加载和错误状态。
+
+```text
+users/
+├── page.tsx
+├── loading.tsx
+└── error.tsx
+```
+
+- `loading.tsx`：页面加载时显示。
+- `error.tsx`：页面出错时兜底。
+
+这样每个页面都能有自己的体验，不用全站只靠一个 loading。
+
+## 国际化
+
+Next.js 常见国际化方式：
+
+- URL 区分语言，比如 `/zh`、`/en`。
+- 语言包集中管理。
+- 页面文案不要散落硬编码。
+
+如果使用 `next-intl`，通常会把语言配置、路由和消息文件放到 `i18n` 目录里。
+
+## 部署
+
+部署前要确认：
+
+- Node.js 版本。
+- 环境变量是否正确。
+- 是否需要 SSR。
+- 是否启用 standalone 输出。
+- 构建机器内存是否足够。
+
+Next.js 构建比较吃内存，小服务器上可以选择在 CI 构建，再把产物部署到服务器。
+
+## 总结
+
+Next.js 项目开发的重点是：理解 App Router，分清 Server Component 和 Client Component，给数据请求设置合适缓存，把交互留给客户端，把敏感逻辑留在服务端。

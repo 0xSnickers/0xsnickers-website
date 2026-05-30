@@ -1,0 +1,86 @@
+---
+title: 函数和事件
+description: Solidity 函数修饰符、错误处理和事件日志。
+---
+
+Solidity 函数负责执行合约逻辑，事件负责把关键行为记录到链上日志里，方便前端和索引服务读取。
+
+## 函数类型
+
+常见函数状态修饰符：
+
+- `view`：只读状态，不修改链上数据。
+- `pure`：不读也不写链上状态。
+- `payable`：可以接收 ETH。
+
+```solidity
+function getCount() external view returns (uint256) {
+    return count;
+}
+
+function add(uint256 a, uint256 b) external pure returns (uint256) {
+    return a + b;
+}
+```
+
+## modifier
+
+`modifier` 用来复用函数前置检查逻辑。
+
+```solidity
+address public owner;
+
+modifier onlyOwner() {
+    require(msg.sender == owner, "Not owner");
+    _;
+}
+
+function withdraw() external onlyOwner {
+    // withdraw logic
+}
+```
+
+`_` 表示继续执行原函数。
+
+## require / revert
+
+`require` 常用于参数和权限检查：
+
+```solidity
+require(amount > 0, "Invalid amount");
+```
+
+`revert` 用于主动回滚：
+
+```solidity
+if (amount == 0) {
+    revert("Invalid amount");
+}
+```
+
+回滚后，本次交易里的状态修改都会撤销。
+
+## event
+
+事件用于记录链上日志。
+
+```solidity
+event Transfer(address indexed from, address indexed to, uint256 amount);
+
+function transfer(address to, uint256 amount) external {
+    emit Transfer(msg.sender, to, amount);
+}
+```
+
+`indexed` 字段方便前端或索引服务按条件过滤。
+
+## 注意事项
+
+- 重要状态变化建议 emit event。
+- event 不能被合约内部直接读取，主要给链下系统使用。
+- `require` 失败会回滚交易。
+- modifier 不要写太复杂，避免隐藏业务逻辑。
+
+## 总结
+
+函数负责执行逻辑，modifier 负责复用检查，require / revert 负责失败回滚，event 负责把关键行为记录给链下系统读取。

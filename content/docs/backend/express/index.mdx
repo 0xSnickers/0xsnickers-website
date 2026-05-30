@@ -1,0 +1,58 @@
+---
+title: Overview
+description: Express 后端开发常用知识点。
+---
+
+Express 是 Node.js 生态里很常用的 Web 框架。它负责把 HTTP 请求分发到对应处理函数，并提供路由、中间件、请求响应和错误处理能力。
+
+项目开发中，Express 常见知识点主要集中在：路由、中间件、请求响应、错误处理和接口分层。
+
+相关笔记：
+
+- [路由和中间件](/docs/backend/express/routing-middleware)：理解请求如何进入对应接口。
+- [请求和响应](/docs/backend/express/request-response)：理解 params、query、body 和 JSON 响应。
+- [错误处理](/docs/backend/express/error-handling)：理解统一错误处理中间件。
+
+## 基本服务
+
+```ts
+import express from "express";
+
+const app = express();
+
+app.get("/health", (req, res) => {
+  res.json({ ok: true });
+});
+
+app.listen(3000);
+```
+
+访问 `/health` 会返回：
+
+```json
+{
+  "ok": true
+}
+```
+
+## 常见分层
+
+```text
+src/
+├── routes/          # 路由定义
+├── controllers/     # 处理请求和响应
+├── services/        # 业务逻辑
+├── middlewares/     # 中间件
+└── server.ts        # 启动入口
+```
+
+建议：
+
+- route 只负责定义路径。
+- controller 负责读取请求和返回响应。
+- service 负责业务逻辑。
+- middleware 负责通用处理，比如鉴权、日志、错误处理。
+
+## 总结
+
+Express 的核心是路由和中间件。写接口时要把请求入口、业务逻辑和错误处理拆清楚，不要把所有逻辑都堆在 route 回调里。

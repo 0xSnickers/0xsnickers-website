@@ -1,0 +1,62 @@
+---
+title: Migration
+description: Prisma Migration 的作用和使用方式。
+---
+
+Migration 用来管理数据库结构变化。
+
+当你修改 `schema.prisma` 后，需要通过 migration 把这些变化同步到数据库。
+
+## 解决什么问题
+
+数据库结构会随着业务变化：
+
+- 新增表。
+- 新增字段。
+- 修改字段类型。
+- 添加索引。
+- 添加关联关系。
+
+如果只靠手动改数据库，很容易不同环境结构不一致。Migration 可以把结构变化记录成文件，方便团队协作和部署。
+
+## 常用命令
+
+开发环境创建 migration：
+
+```bash
+npx prisma migrate dev
+```
+
+生成 Client：
+
+```bash
+npx prisma generate
+```
+
+生产环境执行 migration：
+
+```bash
+npx prisma migrate deploy
+```
+
+## 开发流程
+
+常见流程：
+
+1. 修改 `schema.prisma`。
+2. 执行 `npx prisma migrate dev`。
+3. 检查生成的 migration 文件。
+4. 提交 schema 和 migration 文件。
+5. 部署时执行 `npx prisma migrate deploy`。
+
+## 注意事项
+
+- 不要只提交 `schema.prisma`，忘记提交 migration。
+- 生产环境不要随便使用 `migrate dev`。
+- 删除字段前要确认旧数据是否还需要。
+- 给已有表新增必填字段时，要考虑默认值。
+- migration 文件生成后不要随意手改，除非你明确知道影响。
+
+## 总结
+
+Migration 是数据库结构变化的版本记录。开发时用 `migrate dev` 创建迁移，生产环境用 `migrate deploy` 执行迁移。

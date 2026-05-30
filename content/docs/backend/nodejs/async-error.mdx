@@ -1,0 +1,77 @@
+---
+title: 异步和错误处理
+description: Node.js Promise、async/await 和错误处理方式。
+---
+
+Node.js 后端开发里，大部分操作都是异步的，比如数据库查询、HTTP 请求和文件读写。
+
+## Promise
+
+Promise 用来表示一个未来才会完成的任务。
+
+```ts
+function getUser() {
+  return Promise.resolve({ id: "1", name: "Alice" });
+}
+
+getUser().then((user) => {
+  console.log(user.name);
+});
+```
+
+## async / await
+
+`async / await` 让异步代码看起来更像同步代码。
+
+```ts
+async function main() {
+  const user = await getUser();
+  console.log(user.name);
+}
+```
+
+实际项目中，`async / await` 可读性更好，也更适合配合 `try / catch`。
+
+## 错误处理
+
+异步函数里的错误可以用 `try / catch` 捕获：
+
+```ts
+async function getProfile() {
+  try {
+    const user = await getUser();
+    return user;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+```
+
+在接口服务中，通常不要在每个函数里直接返回杂乱错误，而是统一抛出错误，再交给全局错误处理中间件。
+
+## 常见错误
+
+不要忘记 `await`：
+
+```ts
+const user = getUser();
+```
+
+这里的 `user` 是 Promise，不是真正的数据。
+
+不要吞掉错误：
+
+```ts
+try {
+  await saveUser();
+} catch (error) {
+  console.error(error);
+}
+```
+
+如果捕获后不处理也不抛出，上层会以为操作成功了。
+
+## 总结
+
+Node.js 后端里异步代码很常见。推荐使用 `async / await`，错误用 `try / catch` 捕获，需要上层处理时继续 `throw`，最终交给统一错误处理。

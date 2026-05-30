@@ -1,0 +1,121 @@
+---
+title: App Router
+description: Next.js App Router 解决的问题、使用方式和注意事项。
+---
+
+App Router 是 Next.js 的路由系统。它用文件夹表示 URL 路径，用特殊文件表示页面、布局、加载状态和错误兜底。
+
+## 解决什么问题
+
+传统 React 项目通常需要自己配置路由。Next.js App Router 把路由和文件目录绑定起来，让页面结构更直观。
+
+比如：
+
+```text
+app/
+├── page.tsx
+└── users/
+    └── page.tsx
+```
+
+对应路由：
+
+- `app/page.tsx`：`/`
+- `app/users/page.tsx`：`/users`
+
+## 常见文件
+
+常用约定文件：
+
+- `page.tsx`：当前路径的页面。
+- `layout.tsx`：当前路径和子路径共用布局。
+- `loading.tsx`：页面加载时显示。
+- `error.tsx`：页面出错时兜底。
+- `not-found.tsx`：404 页面。
+- `route.ts`：接口路由。
+
+示例：
+
+```text
+app/users/
+├── layout.tsx
+├── page.tsx
+├── loading.tsx
+└── error.tsx
+```
+
+## layout 的作用
+
+`layout.tsx` 用来放多个页面共用的外壳，比如导航、侧边栏、主题 Provider。
+
+```tsx
+export default function UsersLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <main>
+      <h1>用户模块</h1>
+      {children}
+    </main>
+  );
+}
+```
+
+子路由切换时，layout 通常会保留，不会像普通页面一样完全重新创建。
+
+## loading 和 error
+
+`loading.tsx` 用来处理加载体验：
+
+```tsx
+export default function Loading() {
+  return <div>加载中...</div>;
+}
+```
+
+`error.tsx` 用来处理当前路由段的错误。它必须是 Client Component：
+
+```tsx
+"use client";
+
+export default function ErrorPage({
+  reset,
+}: {
+  reset: () => void;
+}) {
+  return <button onClick={reset}>重试</button>;
+}
+```
+
+## 动态路由
+
+动态路径用方括号：
+
+```text
+app/users/[id]/page.tsx
+```
+
+访问 `/users/123` 时，页面可以拿到 `id`：
+
+```tsx
+export default function UserDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  return <div>{params.id}</div>;
+}
+```
+
+## 注意事项
+
+- `app` 目录下默认是 Server Component。
+- 页面文件只负责路由入口，复杂业务组件建议拆到 `components`。
+- `layout.tsx` 适合放共用结构，不适合堆业务逻辑。
+- `loading.tsx` 和 `error.tsx` 可以按路由拆分，不一定全站共用一个。
+
+## 总结
+
+App Router 用文件目录组织页面，用约定文件处理布局、加载、错误和接口。写 Next.js 页面时，先想清楚路由结构，再把复杂业务拆到组件里。

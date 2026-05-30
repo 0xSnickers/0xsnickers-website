@@ -1,0 +1,60 @@
+---
+title: Overview
+description: Prisma 后端开发常用知识点。
+---
+
+Prisma 是 Node.js 生态里常用的 ORM 工具。它可以把数据库表结构写成 Prisma Schema，然后生成类型安全的 Prisma Client，让后端代码用更直观的方式查询数据库。
+
+项目开发中，Prisma 常见知识点主要集中在：Schema、Model、Prisma Client、Migration 和常用查询。
+
+相关笔记：
+
+- [Schema 和 Model](/docs/backend/prisma/schema-model)：理解 Prisma 如何描述数据库表。
+- [Prisma Client](/docs/backend/prisma/client)：理解如何在代码里查询数据库。
+- [Migration](/docs/backend/prisma/migration)：理解数据库结构变更和迁移。
+- [常用查询](/docs/backend/prisma/query)：理解增删改查、关联查询和分页。
+
+## 解决什么问题
+
+直接写 SQL 可以很灵活，但项目大了之后会遇到一些问题：
+
+- 表结构和代码类型容易不一致。
+- SQL 分散在项目各处，不好维护。
+- 字段改名后，代码里不容易发现错误。
+- 查询结果没有类型提示。
+
+Prisma 的作用是把数据库结构、类型和查询代码连接起来，减少手写 SQL 的维护成本。
+
+## 基本组成
+
+一个 Prisma 项目通常包含：
+
+```text
+prisma/
+└── schema.prisma
+src/
+└── db/
+    └── prisma.ts
+```
+
+`schema.prisma` 负责描述数据库连接和数据模型。
+
+`Prisma Client` 负责在代码中执行查询。
+
+## 基本流程
+
+常见使用流程：
+
+1. 在 `schema.prisma` 中定义 model。
+2. 运行 migration，把结构同步到数据库。
+3. 生成 Prisma Client。
+4. 在 service 中使用 Prisma Client 查询数据。
+
+```bash
+npx prisma migrate dev
+npx prisma generate
+```
+
+## 总结
+
+Prisma 的重点是：用 Schema 描述数据库结构，用 Migration 管理结构变化，用 Prisma Client 在代码里做类型安全的数据库查询。

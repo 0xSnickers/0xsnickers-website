@@ -1,0 +1,85 @@
+---
+title: 请求和响应
+description: Express params、query、body 和响应方式。
+---
+
+Express 接口处理的核心是读取请求数据，然后返回响应。
+
+## params
+
+`params` 来自动态路径。
+
+```ts
+app.get("/users/:id", (req, res) => {
+  const id = req.params.id;
+  res.json({ id });
+});
+```
+
+访问 `/users/123`，`id` 就是 `123`。
+
+## query
+
+`query` 来自 URL 查询参数。
+
+```ts
+app.get("/users", (req, res) => {
+  const keyword = req.query.keyword;
+  res.json({ keyword });
+});
+```
+
+访问 `/users?keyword=alice`，`keyword` 就是 `alice`。
+
+## body
+
+`body` 来自请求体，常用于 POST / PUT。
+
+需要先启用 JSON 解析：
+
+```ts
+app.use(express.json());
+```
+
+读取 body：
+
+```ts
+app.post("/users", (req, res) => {
+  const { name } = req.body;
+  res.json({ name });
+});
+```
+
+## 响应
+
+常见响应方式：
+
+```ts
+res.json({ ok: true });
+```
+
+设置状态码：
+
+```ts
+res.status(201).json({ id: "1" });
+```
+
+返回错误：
+
+```ts
+res.status(400).json({
+  message: "参数错误",
+});
+```
+
+## 注意事项
+
+- `params` 适合资源 ID。
+- `query` 适合分页、搜索、筛选。
+- `body` 适合提交表单或 JSON 数据。
+- 外部输入都不可信，必须校验。
+- 响应结构建议统一，方便前端处理。
+
+## 总结
+
+Express 中常用 `params` 读路径参数，`query` 读查询参数，`body` 读请求体，响应时用 `status` 和 `json` 返回清晰的数据结构。

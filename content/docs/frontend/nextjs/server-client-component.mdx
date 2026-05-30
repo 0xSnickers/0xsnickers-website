@@ -1,0 +1,101 @@
+---
+title: Server / Client Component
+description: Next.js 服务端组件和客户端组件的边界。
+---
+
+Next.js App Router 默认使用 Server Component。只有需要浏览器交互时，才需要把组件改成 Client Component。
+
+## 解决什么问题
+
+传统 React 组件主要运行在浏览器里。Next.js 引入 Server Component 后，可以把一部分组件放在服务端执行。
+
+这样可以：
+
+- 减少浏览器 JavaScript 体积。
+- 在服务端读取数据和环境变量。
+- 更适合 SEO 和首屏渲染。
+- 避免把敏感逻辑暴露到浏览器。
+
+## Server Component
+
+默认组件就是 Server Component。
+
+适合：
+
+- 获取首屏数据。
+- 读取数据库或服务端 API。
+- 读取服务端环境变量。
+- 渲染静态或弱交互内容。
+
+```tsx
+export default async function UsersPage() {
+  const users = await getUsers();
+
+  return <UserList users={users} />;
+}
+```
+
+Server Component 不能使用：
+
+- `useState`
+- `useEffect`
+- 浏览器事件
+- `window`
+- `localStorage`
+
+## Client Component
+
+需要浏览器交互时，文件顶部加 `"use client"`。
+
+```tsx
+"use client";
+
+import { useState } from "react";
+
+export function LikeButton() {
+  const [liked, setLiked] = useState(false);
+
+  return (
+    <button onClick={() => setLiked((value) => !value)}>
+      {liked ? "已喜欢" : "喜欢"}
+    </button>
+  );
+}
+```
+
+适合：
+
+- 点击、输入、弹窗。
+- 表单交互。
+- 状态管理库。
+- 浏览器 API。
+
+## 推荐拆分方式
+
+页面保持服务端，交互部分拆成客户端组件：
+
+```tsx
+export default async function Page() {
+  const user = await getUser();
+
+  return (
+    <section>
+      <h1>{user.name}</h1>
+      <FollowButton userId={user.id} />
+    </section>
+  );
+}
+```
+
+`FollowButton` 再单独加 `"use client"`。
+
+## 注意事项
+
+- 不要把整个页面都改成 Client Component。
+- Server Component 可以把数据通过 props 传给 Client Component。
+- Client Component 不能直接导入只在服务端运行的代码。
+- 敏感环境变量不要传到客户端组件。
+
+## 总结
+
+Server Component 负责数据和静态内容，Client Component 负责交互。Next.js 项目里最重要的是把这条边界拆清楚。

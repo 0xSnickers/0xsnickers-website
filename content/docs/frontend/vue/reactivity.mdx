@@ -1,0 +1,94 @@
+---
+title: 响应式基础
+description: Vue 3 ref、reactive、computed 和 watch 的使用方式。
+---
+
+Vue 3 的响应式系统负责追踪数据变化，并在数据变化后自动更新页面。
+
+## ref
+
+`ref` 适合保存简单值。
+
+```ts
+const count = ref(0);
+
+count.value += 1;
+```
+
+在模板中不需要写 `.value`：
+
+```vue
+<template>
+  <button>{{ count }}</button>
+</template>
+```
+
+适合：
+
+- 字符串。
+- 数字。
+- 布尔值。
+- 需要整体替换的数据。
+
+## reactive
+
+`reactive` 适合对象。
+
+```ts
+const form = reactive({
+  name: "",
+  email: "",
+});
+```
+
+适合：
+
+- 表单对象。
+- 多字段状态。
+- 不需要整体替换的对象。
+
+## computed
+
+`computed` 用来定义派生值。
+
+```ts
+const price = ref(100);
+const count = ref(2);
+
+const total = computed(() => price.value * count.value);
+```
+
+适合：
+
+- 从已有状态计算出结果。
+- 避免模板里写复杂表达式。
+- 需要缓存计算结果。
+
+能用 `computed` 算出来的值，不要再额外维护一份状态。
+
+## watch
+
+`watch` 用来监听变化并执行副作用。
+
+```ts
+watch(keyword, (value) => {
+  searchUsers(value);
+});
+```
+
+适合：
+
+- 搜索关键字变化后请求数据。
+- 路由参数变化后刷新页面。
+- 状态变化后同步到本地存储。
+
+## 注意事项
+
+- 脚本中访问 `ref` 要写 `.value`。
+- 模板中访问 `ref` 会自动解包。
+- `computed` 用来算值，`watch` 用来做副作用。
+- 不要用 `watch` 维护本来可以通过 `computed` 得到的值。
+
+## 总结
+
+`ref` 管简单值，`reactive` 管对象，`computed` 管派生值，`watch` 管副作用。分清这四个概念，Vue 3 的状态逻辑会清楚很多。

@@ -1,0 +1,116 @@
+---
+title: Vue Router
+description: Vue Router 路由、参数和守卫的使用方式。
+---
+
+Vue Router 负责 Vue SPA 的页面跳转和路由管理。
+
+## 基本路由
+
+路由通常集中在 `router` 目录。
+
+```ts
+const routes = [
+  {
+    path: "/",
+    component: () => import("@/pages/HomePage.vue"),
+  },
+  {
+    path: "/users",
+    component: () => import("@/pages/UserListPage.vue"),
+  },
+];
+```
+
+## 路由跳转
+
+组件中使用 `useRouter`：
+
+```ts
+const router = useRouter();
+
+router.push("/users");
+```
+
+也可以带参数：
+
+```ts
+router.push({
+  path: "/users",
+  query: {
+    keyword: "alice",
+  },
+});
+```
+
+## 读取路由信息
+
+使用 `useRoute`：
+
+```ts
+const route = useRoute();
+
+console.log(route.query.keyword);
+```
+
+常用于读取：
+
+- 路由参数。
+- query。
+- meta 信息。
+
+## 动态路由
+
+动态路径：
+
+```ts
+{
+  path: "/users/:id",
+  component: () => import("@/pages/UserDetailPage.vue"),
+}
+```
+
+读取参数：
+
+```ts
+const route = useRoute();
+
+const id = route.params.id;
+```
+
+## 路由守卫
+
+路由守卫常用于登录校验和权限判断。
+
+```ts
+router.beforeEach((to) => {
+  const authStore = useAuthStore();
+
+  if (to.meta.requiresAuth && !authStore.token) {
+    return "/login";
+  }
+});
+```
+
+路由 meta：
+
+```ts
+{
+  path: "/admin",
+  component: () => import("@/pages/AdminPage.vue"),
+  meta: {
+    requiresAuth: true,
+  },
+}
+```
+
+## 注意事项
+
+- 页面筛选条件适合放 query，方便刷新和分享。
+- 登录校验可以放全局守卫。
+- 页面组件里不要硬编码太多跳转路径，可以集中维护路由常量。
+- 路由懒加载可以减少首屏包体积。
+
+## 总结
+
+Vue Router 负责页面跳转、路由参数和访问控制。页面状态能放 URL 的优先放 URL，登录和权限判断可以用路由守卫统一处理。

@@ -1,0 +1,83 @@
+---
+title: 存储模型
+description: Solidity storage、memory、calldata 的区别。
+---
+
+Solidity 里最容易混淆的概念之一是数据位置。常见位置有 `storage`、`memory` 和 `calldata`。
+
+## storage
+
+`storage` 表示链上永久存储。
+
+状态变量默认存在 storage：
+
+```solidity
+contract UserStore {
+    string public name;
+}
+```
+
+写 storage 成本较高，因为它会改变链上状态。
+
+## memory
+
+`memory` 是临时内存，只在函数执行期间存在。
+
+```solidity
+function greet() external pure returns (string memory) {
+    string memory text = "hello";
+    return text;
+}
+```
+
+函数执行结束后，memory 数据就消失。
+
+## calldata
+
+`calldata` 是外部调用传入的数据，只读，不能修改。
+
+```solidity
+function setNames(string[] calldata names) external {
+    // names 只读
+}
+```
+
+对于外部函数参数，如果不需要修改，优先用 `calldata`，通常更省 gas。
+
+## 常见区别
+
+```text
+storage  = 链上永久数据，贵
+memory   = 函数临时数据，可修改
+calldata = 外部传入数据，只读，较省 gas
+```
+
+## 示例
+
+```solidity
+contract Demo {
+    uint256[] public numbers;
+
+    function add(uint256 value) external {
+        numbers.push(value);
+    }
+
+    function copyNumbers() external view returns (uint256[] memory) {
+        uint256[] memory copied = numbers;
+        return copied;
+    }
+}
+```
+
+`numbers` 在 storage，`copied` 在 memory。
+
+## 注意事项
+
+- 修改 storage 会消耗较多 gas。
+- `memory` 修改不会自动写回 storage。
+- `calldata` 不能修改。
+- 数组、结构体、字符串这类复杂类型要明确数据位置。
+
+## 总结
+
+`storage` 是链上状态，`memory` 是临时数据，`calldata` 是外部输入。理解数据位置，才能避免 gas 浪费和状态修改错误。

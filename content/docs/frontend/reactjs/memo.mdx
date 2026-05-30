@@ -1,0 +1,167 @@
+---
+title: React.memo
+description: React.memo 解决的问题、使用方式和注意事项。
+---
+
+`React.memo` 用来减少不必要的组件重新渲染。
+
+通俗地说：父组件重新渲染时，子组件默认也会重新渲染。即使子组件收到的 props 没有变化，它也会跟着执行一遍。`React.memo` 的作用就是：如果 props 没变，就跳过这次子组件渲染。
+
+## 解决什么问题
+
+假设有一个父组件：
+
+```tsx
+import { useState } from "react";
+
+function UserCard({ name }: { name: string }) {
+  console.log("UserCard render");
+  return <div>{name}</div>;
+}
+
+export function Page() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <>
+      <button onClick={() => setCount((value) => value + 1)}>
+        {count}
+      </button>
+      <UserCard name="Alice" />
+    </>
+  );
+}
+```
+
+每次点击按钮，`Page` 会重新渲染，`UserCard` 也会重新渲染。可是 `UserCard` 的 `name` 一直是 `"Alice"`，其实没必要重新渲染。
+
+这时可以用 `memo`：
+
+```tsx
+import { memo, useState } from "react";
+
+const UserCard = memo(function UserCard({ name }: { name: string }) {
+  console.log("UserCard render");
+  return <div>{name}</div>;
+});
+
+export function Page() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <>
+      <button onClick={() => setCount((value) => value + 1)}>
+        {count}
+      </button>
+      <UserCard name="Alice" />
+    </>
+  );
+}
+```
+
+这样 `count` 改变时，如果 `UserCard` 的 props 没变，它就可以跳过渲染。
+
+## 使用方式
+
+基本写法：
+
+```tsx
+import { memo } from "react";
+
+type UserCardProps = {
+  name: string;
+};
+
+export const UserCard = memo(function UserCard({ name }: UserCardProps) {
+  return <div>{name}</div>;
+});
+```
+
+也可以这样写：
+
+```tsx
+function UserCard({ name }: UserCardProps) {
+  return <div>{name}</div>;
+}
+
+export default memo(UserCard);
+```
+
+## 适合使用的场景
+
+适合：
+
+- 子组件渲染成本比较高。
+- 子组件 props 大多数时候不变。
+- 父组件经常因为其他状态变化而重新渲染。
+- 列表里的单个复杂项，比如表格行、卡片、图表块。
+
+不太适合：
+
+- 组件很简单，渲染成本很低。
+- props 每次都会变化。
+- 为了“看起来更优化”到处加 `memo`。
+
+## 注意事项
+
+`React.memo` 默认是浅比较 props。
+
+简单值比较没问题：
+
+```tsx
+<UserCard name="Alice" />
+```
+
+但对象、数组、函数每次重新创建时，引用都会变：
+
+```tsx
+<UserCard user={{ name: "Alice" }} />
+```
+
+即使对象内容一样，每次渲染都会创建一个新对象，`memo` 仍然会认为 props 变了。
+
+可以把对象提到外面，或配合 `useMemo`：
+
+```tsx
+const user = useMemo(() => ({ name: "Alice" }), []);
+
+return <UserCard user={user} />;
+```
+
+函数 props 也一样。如果传给 memo 组件的函数每次都重新创建，`memo` 效果会变差，这时可以配合 `useCallback`。
+
+## 和 useCallback 的关系
+
+`memo` 负责缓存组件渲染结果，`useCallback` 负责缓存函数引用。
+
+```tsx
+const SaveButton = memo(function SaveButton({
+  onSave,
+}: {
+  onSave: () => void;
+}) {
+  return <button onClick={onSave}>保存</button>;
+});
+```
+
+如果父组件里这样写：
+
+```tsx
+<SaveButton onSave={() => save()} />
+```
+
+每次父组件渲染都会创建一个新函数，`SaveButton` 仍然会重新渲染。
+
+可以改成：
+
+```tsx
+const handleSave = useCallback(() => {
+  save();
+}, []);
+
+return <SaveButton onSave={handleSave} />;
+```
+
+## 总结
+
+`React.memo` 解决的是“父组件重新渲染导致子组件没必要跟着渲染”的问题。它适合用在较重、props 稳定的组件上；不要盲目到处加，先确认真的存在无意义渲染。

@@ -1,0 +1,87 @@
+---
+title: 合约基础
+description: Solidity 合约结构、状态变量和可见性。
+---
+
+Solidity 合约可以理解成部署在链上的程序。它有自己的状态变量、函数和地址，用户或其他合约可以通过交易调用它。
+
+## 基本结构
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract Counter {
+    uint256 public count;
+
+    constructor(uint256 initialCount) {
+        count = initialCount;
+    }
+
+    function increment() external {
+        count += 1;
+    }
+}
+```
+
+常见组成：
+
+- `SPDX-License-Identifier`：开源协议声明。
+- `pragma`：指定 Solidity 编译器版本。
+- `contract`：定义合约。
+- 状态变量：保存到链上的数据。
+- `constructor`：部署时执行一次。
+- `function`：外部或内部可调用的逻辑。
+
+## 状态变量
+
+状态变量会写入区块链存储。
+
+```solidity
+uint256 public count;
+address public owner;
+```
+
+状态变量读写都要注意 gas 成本。写入链上存储通常比普通内存计算贵很多。
+
+## 可见性
+
+函数和变量常见可见性：
+
+- `public`：内部和外部都能访问。
+- `external`：只能外部调用。
+- `internal`：当前合约和子合约能访问。
+- `private`：只有当前合约能访问。
+
+示例：
+
+```solidity
+function deposit() external payable {}
+
+function _updateBalance(address user) internal {}
+```
+
+一般建议：外部接口用 `external`，内部工具函数用 `internal`。
+
+## payable
+
+如果函数需要接收 ETH，要加 `payable`。
+
+```solidity
+function deposit() external payable {
+    require(msg.value > 0, "No ETH sent");
+}
+```
+
+没有 `payable` 的函数不能直接接收 ETH。
+
+## 注意事项
+
+- 合约部署后代码不可直接修改，除非使用代理升级模式。
+- 状态变量写入有 gas 成本，不要无意义存储。
+- `private` 不是链上隐私，只是 Solidity 层面不能被其他合约直接访问。
+- 接收 ETH 的函数必须显式加 `payable`。
+
+## 总结
+
+Solidity 合约由状态变量和函数组成。状态变量保存在链上，函数负责修改或读取状态。写合约时要特别注意可见性、gas 成本和权限边界。

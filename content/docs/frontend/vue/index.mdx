@@ -1,6 +1,318 @@
 ---
-title: Vue
-description: Vue 生态和前端实践笔记。
+title: Vue 3
+description: Vue 3 项目开发常用知识点。
 ---
 
-这里放 Vue 组件、组合式 API、状态管理和生态实践记录。
+Vue 3 的核心是组件、响应式和 Composition API。它写起来直观，适合做页面较多、表单较多、需要快速迭代的前端应用。
+
+项目开发中，Vue 3 常见知识点主要集中在：`ref`、`reactive`、`computed`、`watch`、组件通信、Vue Router、Pinia 和 composables。
+
+相关笔记：
+
+- [响应式基础](/docs/frontend/vue/reactivity)：理解 `ref`、`reactive`、`computed` 和 `watch`。
+- [组件通信](/docs/frontend/vue/component-communication)：理解 props、emit、v-model、provide / inject。
+- [Composables](/docs/frontend/vue/composables)：理解 Vue 3 复用逻辑的方式。
+- [Pinia](/docs/frontend/vue/pinia)：理解跨页面状态管理。
+- [Vue Router](/docs/frontend/vue/vue-router)：理解页面路由、路由参数和守卫。
+
+## 单文件组件
+
+Vue 常用单文件组件，也就是 `.vue` 文件。
+
+```vue
+<script setup lang="ts">
+const title = "Hello Vue";
+</script>
+
+<template>
+  <h1>{{ title }}</h1>
+</template>
+
+<style scoped>
+h1 {
+  font-weight: 600;
+}
+</style>
+```
+
+常见结构：
+
+- `<script setup>`：写逻辑。
+- `<template>`：写页面结构。
+- `<style scoped>`：写当前组件样式。
+
+## ref
+
+`ref` 用来定义响应式数据。
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+
+const count = ref(0);
+
+function increment() {
+  count.value += 1;
+}
+</script>
+
+<template>
+  <button @click="increment">{{ count }}</button>
+</template>
+```
+
+注意：
+
+- 在脚本里访问 `ref` 要写 `.value`。
+- 在模板里会自动解包，不需要 `.value`。
+
+## reactive
+
+`reactive` 适合对象类型状态，比如表单。
+
+```ts
+import { reactive } from "vue";
+
+const form = reactive({
+  name: "",
+  email: "",
+});
+```
+
+适合：
+
+- 表单对象。
+- 多个字段组成的状态。
+- 不需要整体替换的对象。
+
+如果只是字符串、数字、布尔值，优先用 `ref`。
+
+## computed
+
+`computed` 用来定义派生数据。
+
+```ts
+import { computed, ref } from "vue";
+
+const price = ref(100);
+const count = ref(2);
+
+const total = computed(() => price.value * count.value);
+```
+
+适合：
+
+- 从已有状态计算出新值。
+- 模板里不想写复杂表达式。
+- 需要缓存计算结果。
+
+能用 `computed` 表达的派生值，不要再额外维护一份 state。
+
+## watch
+
+`watch` 用来监听数据变化并执行副作用。
+
+```ts
+watch(keyword, (value) => {
+  console.log("搜索关键字变化：", value);
+});
+```
+
+适合：
+
+- 搜索关键字变化后请求数据。
+- 路由参数变化后刷新页面。
+- 某个状态变化后同步到本地存储。
+
+不要滥用 `watch`。如果只是显示一个计算结果，应该用 `computed`。
+
+## props 和 emit
+
+父组件给子组件传数据，用 props。
+
+```vue
+<script setup lang="ts">
+defineProps<{
+  name: string;
+}>();
+</script>
+
+<template>
+  <div>{{ name }}</div>
+</template>
+```
+
+子组件通知父组件，用 emit。
+
+```vue
+<script setup lang="ts">
+const emit = defineEmits<{
+  save: [value: string];
+}>();
+</script>
+
+<template>
+  <button @click="emit('save', 'ok')">保存</button>
+</template>
+```
+
+简单父子通信优先用 props / emit。
+
+## v-model
+
+`v-model` 常用于表单双向绑定。
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+
+const name = ref("");
+</script>
+
+<template>
+  <input v-model="name" />
+  <p>{{ name }}</p>
+</template>
+```
+
+在自定义组件里，`v-model` 本质上是 `modelValue` + `update:modelValue`。
+
+## Composables
+
+composable 是 Vue 3 复用逻辑的方式，通常以 `use` 开头。
+
+```ts
+import { onBeforeUnmount, ref } from "vue";
+
+export function useCountdown(seconds: number) {
+  const count = ref(seconds);
+
+  const timer = window.setInterval(() => {
+    count.value -= 1;
+  }, 1000);
+
+  onBeforeUnmount(() => {
+    window.clearInterval(timer);
+  });
+
+  return { count };
+}
+```
+
+适合抽成 composable 的逻辑：
+
+- 分页。
+- 搜索筛选。
+- 弹窗开关。
+- 请求流程。
+- 浏览器事件监听。
+
+## Vue Router
+
+Vue Router 负责页面路由。
+
+```ts
+const routes = [
+  {
+    path: "/users",
+    component: () => import("@/pages/UserListPage.vue"),
+  },
+];
+```
+
+常见用法：
+
+- `useRoute()`：读取当前路由信息。
+- `useRouter()`：跳转页面。
+- 路由守卫：做登录校验或权限判断。
+
+```ts
+const route = useRoute();
+const router = useRouter();
+
+router.push("/users");
+```
+
+## Pinia
+
+Pinia 是 Vue 常用状态管理库。
+
+适合保存：
+
+- 登录信息。
+- 用户信息。
+- 权限菜单。
+- 主题、语言。
+- 跨页面共享状态。
+
+不适合保存：
+
+- 单个组件自己的状态。
+- 普通表单输入。
+- 临时弹窗开关。
+- 所有接口返回数据。
+
+```ts
+import { defineStore } from "pinia";
+
+export const useAuthStore = defineStore("auth", {
+  state: () => ({
+    token: "",
+  }),
+  actions: {
+    logout() {
+      this.token = "";
+    },
+  },
+});
+```
+
+## API 请求
+
+项目里建议统一封装请求。
+
+```text
+services/api/
+├── httpClient.ts
+└── userApi.ts
+```
+
+```ts
+export function getUsers() {
+  return httpClient.get("/users");
+}
+```
+
+不要在每个组件里重复写 Axios 配置。Token、baseURL、错误处理应该统一放在 `httpClient`。
+
+## 表单
+
+Vue 表单通常用 `v-model` 和 `reactive`。
+
+```vue
+<script setup lang="ts">
+import { reactive } from "vue";
+
+const form = reactive({
+  name: "",
+  email: "",
+});
+</script>
+
+<template>
+  <input v-model="form.name" />
+  <input v-model="form.email" />
+</template>
+```
+
+复杂表单要注意：
+
+- 默认值。
+- 校验规则。
+- 提交 loading。
+- 编辑时数据回填。
+- 关闭弹窗时重置表单。
+
+## 总结
+
+Vue 3 项目开发的重点是：用 `ref` / `reactive` 管状态，用 `computed` 管派生值，用 `watch` 做副作用，用 props / emit 做组件通信，用 composables 复用逻辑，用 Pinia 管跨页面状态。

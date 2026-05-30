@@ -1,0 +1,86 @@
+---
+title: Prisma Client
+description: Prisma Client 的作用、初始化和使用方式。
+---
+
+Prisma Client 是根据 `schema.prisma` 生成的数据库查询客户端。
+
+它最大的好处是：查询代码有类型提示，字段写错时 TypeScript 能更早发现问题。
+
+## 初始化
+
+常见写法：
+
+```ts
+import { PrismaClient } from "@prisma/client";
+
+export const prisma = new PrismaClient();
+```
+
+项目里通常会把它放到统一文件中：
+
+```text
+src/db/prisma.ts
+```
+
+业务代码里统一导入：
+
+```ts
+import { prisma } from "@/db/prisma";
+```
+
+## 查询数据
+
+查询列表：
+
+```ts
+const users = await prisma.user.findMany();
+```
+
+查询单条：
+
+```ts
+const user = await prisma.user.findUnique({
+  where: {
+    id: "user_id",
+  },
+});
+```
+
+创建数据：
+
+```ts
+const user = await prisma.user.create({
+  data: {
+    email: "alice@example.com",
+    name: "Alice",
+  },
+});
+```
+
+## 在 service 中使用
+
+建议不要在路由里直接写大量 Prisma 查询。
+
+更推荐放到 service：
+
+```ts
+export async function getUserById(id: string) {
+  return prisma.user.findUnique({
+    where: { id },
+  });
+}
+```
+
+controller 只负责接收请求和返回响应，service 负责业务和数据库操作。
+
+## 注意事项
+
+- Prisma Client 应该统一创建和导出。
+- 不要在每个请求里 `new PrismaClient()`。
+- 查询结果可能是 `null`，代码要处理。
+- 生产环境要注意连接数，避免数据库连接过多。
+
+## 总结
+
+Prisma Client 是代码访问数据库的入口。项目里建议统一初始化，在 service 中使用，避免查询逻辑散落在路由和 controller 中。

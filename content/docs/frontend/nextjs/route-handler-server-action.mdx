@@ -1,0 +1,88 @@
+---
+title: Route Handler 和 Server Action
+description: Next.js 接口路由和服务端动作的使用边界。
+---
+
+Route Handler 和 Server Action 都能在服务端执行代码，但适用场景不一样。
+
+## Route Handler
+
+Route Handler 是 Next.js 的接口路由。
+
+文件路径：
+
+```text
+app/api/health/route.ts
+```
+
+示例：
+
+```ts
+export async function GET() {
+  return Response.json({ ok: true });
+}
+```
+
+访问 `/api/health` 时会返回 JSON。
+
+适合：
+
+- BFF 聚合接口。
+- 代理后端服务。
+- Webhook 回调。
+- 文件上传下载。
+- 使用不能暴露给浏览器的密钥。
+
+## Server Action
+
+Server Action 是可以从组件或表单调用的服务端函数。
+
+```tsx
+async function createUser(formData: FormData) {
+  "use server";
+
+  const name = formData.get("name");
+  await saveUser(name);
+}
+
+export function UserForm() {
+  return (
+    <form action={createUser}>
+      <input name="name" />
+      <button type="submit">保存</button>
+    </form>
+  );
+}
+```
+
+适合：
+
+- 表单提交。
+- 简单写操作。
+- 不想额外写一个 API 路由的服务端动作。
+
+## 怎么选择
+
+使用 Route Handler：
+
+- 需要给外部系统调用。
+- 需要明确的 HTTP API。
+- 需要处理不同 method。
+- 需要被非 React 页面调用。
+
+使用 Server Action：
+
+- 只给当前 Next.js 页面使用。
+- 表单提交逻辑简单。
+- 操作和页面关系很近。
+
+## 注意事项
+
+- 不要把复杂后端业务全部塞进 Next.js。
+- 服务端密钥可以放在 Route Handler 或 Server Action，但不要传给客户端。
+- 写操作后要考虑重新验证缓存或刷新数据。
+- 复杂表单仍然可以用客户端请求，不必强行使用 Server Action。
+
+## 总结
+
+Route Handler 更像接口，Server Action 更像页面附近的服务端函数。外部可调用、复杂 HTTP 场景用 Route Handler；页面内部简单提交可以考虑 Server Action。

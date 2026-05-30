@@ -1,0 +1,105 @@
+---
+title: Schema 和 Model
+description: Prisma Schema 和 Model 的作用与写法。
+---
+
+`schema.prisma` 是 Prisma 的核心配置文件。它用来描述数据库连接、生成器和数据模型。
+
+## 基本结构
+
+```prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+}
+```
+
+这里包含三部分：
+
+- `generator`：告诉 Prisma 生成什么客户端。
+- `datasource`：告诉 Prisma 连接哪个数据库。
+- `model`：描述数据库表结构。
+
+## Model 是什么
+
+`model` 可以理解成数据库表。
+
+```prisma
+model User {
+  id    String @id @default(cuid())
+  email String @unique
+  name  String?
+}
+```
+
+常见字段标记：
+
+- `@id`：主键。
+- `@default(...)`：默认值。
+- `@unique`：唯一约束。
+- `?`：可选字段，也就是可以为 null。
+
+## 字段类型
+
+常见类型：
+
+- `String`
+- `Int`
+- `Boolean`
+- `DateTime`
+- `Json`
+- `Float`
+
+示例：
+
+```prisma
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  published Boolean  @default(false)
+  views     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+```
+
+## 关联关系
+
+一对多关系：
+
+```prisma
+model User {
+  id    String @id @default(cuid())
+  posts Post[]
+}
+
+model Post {
+  id       String @id @default(cuid())
+  title    String
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+}
+```
+
+意思是：一个用户可以有多篇文章，一篇文章属于一个用户。
+
+## 注意事项
+
+- 修改 model 后，需要执行 migration。
+- 字段命名尽量稳定，避免频繁改名。
+- 必填字段上线前要考虑已有数据怎么补默认值。
+- 关联关系要明确外键字段，比如 `authorId`。
+
+## 总结
+
+Prisma Schema 用来描述数据库结构。Model 对应表，字段对应列，关系用 `@relation` 描述。Schema 改了之后，要通过 migration 同步到数据库。

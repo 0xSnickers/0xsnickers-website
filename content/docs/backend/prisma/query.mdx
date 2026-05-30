@@ -1,0 +1,124 @@
+---
+title: 常用查询
+description: Prisma 增删改查、分页和关联查询。
+---
+
+Prisma 查询的核心是通过 `prisma.modelName.method()` 操作数据。
+
+## 查询列表
+
+```ts
+const users = await prisma.user.findMany();
+```
+
+带条件：
+
+```ts
+const users = await prisma.user.findMany({
+  where: {
+    email: {
+      contains: "example.com",
+    },
+  },
+});
+```
+
+## 查询单条
+
+```ts
+const user = await prisma.user.findUnique({
+  where: {
+    id: "user_id",
+  },
+});
+```
+
+如果查不到，结果是 `null`。
+
+## 创建数据
+
+```ts
+const user = await prisma.user.create({
+  data: {
+    email: "alice@example.com",
+    name: "Alice",
+  },
+});
+```
+
+## 更新数据
+
+```ts
+const user = await prisma.user.update({
+  where: {
+    id: "user_id",
+  },
+  data: {
+    name: "Alice Updated",
+  },
+});
+```
+
+## 删除数据
+
+```ts
+await prisma.user.delete({
+  where: {
+    id: "user_id",
+  },
+});
+```
+
+## 分页
+
+```ts
+const users = await prisma.user.findMany({
+  skip: 20,
+  take: 10,
+  orderBy: {
+    createdAt: "desc",
+  },
+});
+```
+
+- `skip`：跳过多少条。
+- `take`：取多少条。
+- `orderBy`：排序。
+
+## 关联查询
+
+查询用户和文章：
+
+```ts
+const user = await prisma.user.findUnique({
+  where: {
+    id: "user_id",
+  },
+  include: {
+    posts: true,
+  },
+});
+```
+
+只选择部分字段：
+
+```ts
+const users = await prisma.user.findMany({
+  select: {
+    id: true,
+    email: true,
+  },
+});
+```
+
+## 注意事项
+
+- `findUnique` 查不到会返回 `null`。
+- `update` / `delete` 目标不存在时会抛错。
+- 列表接口要分页，不要一次返回全部数据。
+- `include` 关联数据不要无限嵌套，避免查询过重。
+- 前端不需要的字段用 `select` 精简返回。
+
+## 总结
+
+Prisma 常用查询包括 `findMany`、`findUnique`、`create`、`update`、`delete`。列表注意分页，详情注意空值，关联查询注意控制返回字段和嵌套深度。

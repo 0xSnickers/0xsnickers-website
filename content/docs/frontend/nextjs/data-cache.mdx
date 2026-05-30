@@ -1,0 +1,83 @@
+---
+title: 数据请求和缓存
+description: Next.js fetch 缓存、no-store 和 revalidate 的使用方式。
+---
+
+Next.js 的数据请求不只是请求接口，还和页面渲染、缓存、静态生成有关。
+
+## 解决什么问题
+
+不同数据更新频率不同：
+
+- 文档内容可能一天变一次。
+- 商品价格可能几分钟变一次。
+- 用户信息可能每次请求都不同。
+
+Next.js 允许你给不同请求设置不同缓存策略。
+
+## 默认缓存
+
+在 Server Component 里可以直接请求数据：
+
+```tsx
+const res = await fetch("https://api.example.com/posts");
+```
+
+默认情况下，Next.js 可能会缓存请求结果，适合稳定内容。
+
+## no-store
+
+如果数据不能缓存，可以使用 `no-store`：
+
+```tsx
+const res = await fetch("https://api.example.com/profile", {
+  cache: "no-store",
+});
+```
+
+适合：
+
+- 登录用户数据。
+- 实时数据。
+- 后台管理页面。
+- 每次都要拿最新结果的接口。
+
+## revalidate
+
+如果数据可以缓存一段时间，可以使用 `revalidate`：
+
+```tsx
+const res = await fetch("https://api.example.com/posts", {
+  next: {
+    revalidate: 60,
+  },
+});
+```
+
+表示缓存最多保留 60 秒。过期后，Next.js 可以重新生成数据。
+
+适合：
+
+- 内容列表。
+- 博客文章。
+- 商品详情。
+- 不需要每秒实时更新的数据。
+
+## 常见选择
+
+- 稳定内容：默认缓存或较长 `revalidate`。
+- 内容站列表：`revalidate`。
+- 登录后用户数据：`no-store`。
+- 后台操作数据：`no-store`。
+- 强交互刷新：客户端请求或数据请求库。
+
+## 注意事项
+
+- 不要所有接口都无脑 `no-store`，否则失去缓存优势。
+- 也不要所有接口都默认缓存，用户数据可能会出错。
+- 缓存策略要按数据类型决定。
+- 写操作后要考虑如何刷新页面或重新获取数据。
+
+## 总结
+
+Next.js 数据请求的重点是缓存策略。稳定内容可以缓存，用户数据和实时数据不要缓存，能接受延迟更新的数据适合用 `revalidate`。

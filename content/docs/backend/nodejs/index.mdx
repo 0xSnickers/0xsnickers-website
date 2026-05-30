@@ -1,0 +1,71 @@
+---
+title: Overview
+description: Node.js 后端开发常用知识点。
+---
+
+Node.js 是一个 JavaScript 运行时。它让 JavaScript 不只运行在浏览器里，也可以运行在服务器上，用来写接口服务、脚本工具、定时任务和网关服务。
+
+项目开发中，Node.js 常见知识点主要集中在：运行时、模块系统、异步模型、错误处理、环境变量和进程管理。
+
+相关笔记：
+
+- [事件循环](/docs/backend/nodejs/event-loop)：理解异步任务为什么不会阻塞主线程。
+- [异步和错误处理](/docs/backend/nodejs/async-error)：理解 Promise、async/await 和错误捕获。
+- [模块和环境变量](/docs/backend/nodejs/module-env)：理解 ESM、CommonJS、process.env 和配置管理。
+
+## Node.js 适合做什么
+
+适合：
+
+- REST API 服务。
+- BFF 网关。
+- Webhook 服务。
+- 定时任务。
+- 命令行工具。
+- 轻量数据处理脚本。
+
+不太适合：
+
+- CPU 密集型计算。
+- 大量图片、视频转码。
+- 需要长时间占用 CPU 的任务。
+
+这些任务更适合拆到独立服务、队列或专门的计算进程。
+
+## 基本服务
+
+Node.js 原生可以创建 HTTP 服务：
+
+```ts
+import http from "node:http";
+
+const server = http.createServer((req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.end(JSON.stringify({ ok: true }));
+});
+
+server.listen(3000);
+```
+
+实际项目里通常不会直接写原生 `http`，而是使用 Express、Fastify、NestJS 等框架。
+
+## 常见目录
+
+一个简单 Node.js API 项目可以这样组织：
+
+```text
+src/
+├── config/          # 环境变量和配置
+├── controllers/     # 请求入口
+├── services/        # 业务逻辑
+├── routes/          # 路由
+├── middlewares/     # 中间件
+├── utils/           # 工具函数
+└── server.ts        # 服务启动入口
+```
+
+核心思路是：路由负责分发，controller 负责接请求，service 负责业务逻辑。
+
+## 总结
+
+Node.js 的重点是理解它的异步模型和运行时边界。接口服务可以用 Express 快速搭建，但业务逻辑、配置、错误处理和目录分层要从一开始就整理清楚。

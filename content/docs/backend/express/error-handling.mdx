@@ -1,0 +1,84 @@
+---
+title: 错误处理
+description: Express 统一错误处理方式。
+---
+
+接口服务一定会出错，比如参数错误、数据库错误、权限不足和第三方服务异常。
+
+Express 推荐用统一错误处理中间件处理这些问题。
+
+## 普通错误
+
+接口里可以抛出错误：
+
+```ts
+app.get("/users/:id", async (req, res, next) => {
+  try {
+    const user = await getUser(req.params.id);
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+});
+```
+
+`next(error)` 会把错误交给错误处理中间件。
+
+## 错误处理中间件
+
+错误处理中间件有四个参数：
+
+```ts
+app.use((error, req, res, next) => {
+  console.error(error);
+
+  res.status(500).json({
+    message: "服务器错误",
+  });
+});
+```
+
+参数顺序不能少，否则 Express 不会把它识别成错误处理中间件。
+
+## 自定义错误
+
+可以定义业务错误：
+
+```ts
+export class AppError extends Error {
+  constructor(
+    public statusCode: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+```
+
+使用：
+
+```ts
+throw new AppError(404, "用户不存在");
+```
+
+统一处理：
+
+```ts
+if (error instanceof AppError) {
+  return res.status(error.statusCode).json({
+    message: error.message,
+  });
+}
+```
+
+## 注意事项
+
+- 不要把数据库错误原样返回给前端。
+- 错误响应结构要统一。
+- 异步接口要把错误交给 `next(error)`。
+- 生产环境不要返回完整 stack。
+- 参数校验错误、权限错误、系统错误要区分状态码。
+
+## 总结
+
+Express 错误处理建议集中到统一中间件。接口里发现错误就抛出或 `next(error)`，最终由错误处理中间件决定状态码和返回格式。

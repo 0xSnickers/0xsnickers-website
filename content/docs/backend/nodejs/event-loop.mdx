@@ -1,0 +1,66 @@
+---
+title: 事件循环
+description: Node.js 事件循环的作用和基本理解。
+---
+
+事件循环是 Node.js 能处理异步任务的核心机制。
+
+通俗地说：Node.js 主线程不会一直等一个慢任务完成，而是先把慢任务交出去，等结果回来后再执行回调。
+
+## 解决什么问题
+
+接口服务里经常会遇到慢操作：
+
+- 查询数据库。
+- 调用外部 API。
+- 读取文件。
+- 等待网络请求。
+
+如果每个操作都阻塞主线程，服务就很容易卡住。事件循环让 Node.js 可以在等待这些任务时继续处理其他请求。
+
+## 简单例子
+
+```ts
+console.log("start");
+
+setTimeout(() => {
+  console.log("timer");
+}, 0);
+
+Promise.resolve().then(() => {
+  console.log("promise");
+});
+
+console.log("end");
+```
+
+输出大致是：
+
+```text
+start
+end
+promise
+timer
+```
+
+同步代码先执行，Promise 这类微任务再执行，定时器回调后执行。
+
+## 微任务和宏任务
+
+可以简单理解：
+
+- 微任务：Promise、queueMicrotask。
+- 宏任务：setTimeout、setInterval、I/O 回调。
+
+通常微任务会比定时器更早执行。
+
+## 注意事项
+
+- Node.js 适合 I/O 密集型任务。
+- 不要在主线程里写很重的同步计算。
+- 大量同步循环会阻塞事件循环，导致接口响应变慢。
+- CPU 密集型任务可以考虑 Worker Thread、队列或独立服务。
+
+## 总结
+
+事件循环让 Node.js 可以用单线程处理大量异步 I/O。写后端接口时，要避免长时间同步阻塞，把慢任务交给异步 API 或独立任务处理。

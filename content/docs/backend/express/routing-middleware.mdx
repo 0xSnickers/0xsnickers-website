@@ -1,0 +1,78 @@
+---
+title: 路由和中间件
+description: Express 路由和中间件的作用与使用方式。
+---
+
+路由负责匹配请求路径，中间件负责在请求进入接口前后做通用处理。
+
+## 路由
+
+基本路由：
+
+```ts
+app.get("/users", (req, res) => {
+  res.json([]);
+});
+
+app.post("/users", (req, res) => {
+  res.json({ ok: true });
+});
+```
+
+常见 HTTP 方法：
+
+- `GET`：查询数据。
+- `POST`：创建数据。
+- `PUT` / `PATCH`：更新数据。
+- `DELETE`：删除数据。
+
+## Router
+
+实际项目里通常用 Router 拆分模块：
+
+```ts
+import { Router } from "express";
+
+export const userRouter = Router();
+
+userRouter.get("/", getUsers);
+userRouter.post("/", createUser);
+```
+
+在入口挂载：
+
+```ts
+app.use("/users", userRouter);
+```
+
+## 中间件
+
+中间件是请求处理链上的函数。
+
+```ts
+app.use((req, res, next) => {
+  console.log(req.method, req.path);
+  next();
+});
+```
+
+`next()` 表示继续交给下一个中间件或路由。
+
+常见中间件：
+
+- JSON body 解析。
+- 日志。
+- 鉴权。
+- CORS。
+- 错误处理。
+
+## 注意事项
+
+- 中间件顺序很重要，先注册的先执行。
+- 忘记调用 `next()` 会让请求卡住。
+- 路由模块建议按业务拆分。
+- 通用逻辑放中间件，不要每个接口重复写。
+
+## 总结
+
+Express 请求会按顺序经过中间件和路由。路由负责具体接口，中间件负责通用逻辑，二者分清楚后接口结构会更清晰。

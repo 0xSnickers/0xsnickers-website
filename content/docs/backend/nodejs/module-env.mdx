@@ -1,0 +1,81 @@
+---
+title: 模块和环境变量
+description: Node.js 模块系统和环境变量使用方式。
+---
+
+Node.js 项目里常见两类基础问题：代码怎么拆模块，配置怎么从环境变量读取。
+
+## 模块系统
+
+Node.js 常见两种模块系统：
+
+- CommonJS：`require` / `module.exports`
+- ESM：`import` / `export`
+
+CommonJS：
+
+```js
+const express = require("express");
+
+module.exports = app;
+```
+
+ESM：
+
+```ts
+import express from "express";
+
+export { app };
+```
+
+现在新项目更常使用 ESM，尤其是 TypeScript 项目。
+
+## 环境变量
+
+环境变量用来配置不同环境的值，比如：
+
+- 端口。
+- 数据库地址。
+- JWT 密钥。
+- 第三方 API Key。
+
+读取方式：
+
+```ts
+const port = process.env.PORT ?? "3000";
+```
+
+本地开发通常会使用 `.env` 文件：
+
+```text
+PORT=3000
+DATABASE_URL=postgres://localhost:5432/app
+JWT_SECRET=dev-secret
+```
+
+## 配置集中管理
+
+不要在业务代码里到处读取 `process.env`。
+
+推荐集中到 `config`：
+
+```ts
+export const env = {
+  port: Number(process.env.PORT ?? 3000),
+  databaseUrl: process.env.DATABASE_URL,
+  jwtSecret: process.env.JWT_SECRET,
+};
+```
+
+这样可以统一校验、统一默认值，也更容易测试。
+
+## 注意事项
+
+- 密钥不要提交到 Git。
+- `.env` 应该加入 `.gitignore`。
+- 生产环境变量应该由部署平台或服务器注入。
+- 必填配置启动时就应该校验，避免运行中才报错。
+
+## 总结
+
+模块系统负责组织代码，环境变量负责隔离配置。项目里建议统一使用一种模块风格，并把环境变量集中到 `config` 中管理。
