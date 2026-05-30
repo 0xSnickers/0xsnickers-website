@@ -4,6 +4,15 @@ import { createMDX } from 'fumadocs-mdx/next';
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
+  images: {
+    unoptimized: process.env.NODE_ENV === 'development',
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'raw.githubusercontent.com',
+      },
+    ],
+  },
   experimental: {
     cpus: 1,
     workerThreads: false,

@@ -8,12 +8,44 @@ import {
   Sparkles,
 } from 'lucide-react';
 import Image from 'next/image';
+import { useState, type ComponentType } from 'react';
 import { getIconComponent, getProjectByLanguage, type Project } from '@/data/projects';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 type HeroProps = {
   projects: Project[];
 };
+
+type ProjectLogoProps = {
+  logo?: string;
+  accent: string;
+  alt: string;
+  IconComponent: ComponentType<{ className?: string }>;
+};
+
+function ProjectLogo({ logo, accent, alt, IconComponent }: ProjectLogoProps) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const logoSrc = !imageFailed ? logo : undefined;
+
+  return (
+    <div
+      className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br ${accent} overflow-hidden`}
+    >
+      {logoSrc ? (
+        <Image
+          src={logoSrc}
+          alt={alt}
+          width={44}
+          height={44}
+          className="h-11 w-11 object-cover"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <IconComponent className="h-5 w-5 text-white" />
+      )}
+    </div>
+  );
+}
 
 export default function Hero({ projects }: HeroProps) {
   const { t, language } = useLanguage();
@@ -105,21 +137,12 @@ export default function Hero({ projects }: HeroProps) {
                     >
                       <div className="mb-4 flex items-start justify-between gap-4">
                         <div className="flex items-start gap-3">
-                          <div
-                            className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br ${project.accent} overflow-hidden`}
-                          >
-                            {project.logo ? (
-                              <Image
-                                src={project.logo}
-                                alt={translated.name}
-                                width={44}
-                                height={44}
-                                className="object-cover"
-                              />
-                            ) : (
-                              <IconComponent className="h-5 w-5 text-white" />
-                            )}
-                          </div>
+                          <ProjectLogo
+                            logo={project.logo}
+                            accent={project.accent}
+                            alt={translated.name}
+                            IconComponent={IconComponent}
+                          />
                           <div>
                             <p className="text-lg font-bold text-white">
                               {translated.name}

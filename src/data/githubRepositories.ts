@@ -16,6 +16,7 @@ type GitHubRepository = {
 
 const GITHUB_REPOSITORIES_URL = 'https://api.github.com/users/0xSnickers/repos';
 const GITHUB_USERNAME = '0xSnickers';
+const REPOSITORY_LOGO_PATH = 'main/public/images/favicon.jpg';
 
 const accents = [
   'from-blue-500 to-cyan-400',
@@ -50,6 +51,9 @@ function mapRepositoryToProject(repo: GitHubRepository, index: number): Project 
 
   return {
     id: repo.id,
+    logo: `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${encodeURIComponent(
+      repo.name,
+    )}/${REPOSITORY_LOGO_PATH}`,
     icon: repo.language ? iconByLanguage[repo.language] ?? 'Code2' : 'Github',
     accent: accents[index % accents.length],
     github: repo.html_url,
