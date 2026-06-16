@@ -1,0 +1,178 @@
+---
+title: ISR 
+description: ISR 使用说明
+---
+
+
+# Next.js ISR 使用说明
+
+ISR（Incremental Static Regeneration，增量静态再生成）用于在不重新部署应用的情况下，定期更新已经生成的静态页面。
+
+它结合了 SSG 和动态渲染的特点：
+
+- 页面优先返回已经生成的静态缓存，响应速度接近 SSG。
+- 缓存超过有效期后，由后续访问触发后台重新生成。
+- 页面可以定期获得新内容，不需要每次请求都执行服务端渲染。
+
+## 解决什么问题
+
+### SSG 内容无法自动更新
+
+普通 SSG 页面只在 `npm run build` 时生成。数据发生变化后，需要重新构建和部署才能更新页面。
+
+ISR 可以设置重新验证时间，让静态页面在部署后继续更新。
+
+### SSR 每次请求都需要重新计算
+
+SSR 会在每次请求时渲染页面，能够返回最新内容，但会增加服务器计算、接口请求和响应时间。
+
+ISR 复用已经生成的页面，只在缓存过期后重新生成，适合：
+
+- 新闻、博客和文档页面。
+- 商品详情和商品列表。
+- 更新频率不高的活动页、榜单和数据展示页。
+- 可以接受几十秒或几分钟数据延迟的页面。
+
+ISR 不适合必须实时展示的数据，也不适合根据 Cookie、登录用户或请求头返回不同内容的个性化页面。
+
+## 怎么使用
+
+### 基础用法
+
+在 App Router 页面或布局中导出 `revalidate`，单位为秒：
+
+```tsx
+export const revalidate = 60;
+
+export default async function ArticlePage() {
+  const article = await getArticle();
+
+  return <article>{article.title}</article>;
+}
+```
+
+`revalidate = 60` 表示缓存至少可以使用 60 秒，但并不表示服务器会每隔 60 秒主动更新页面。
+
+实际更新流程是：
+
+1. 构建时或首次访问时生成静态页面。
+2. 60 秒内的请求复用同一个缓存版本。
+3. 超过 60 秒后的第一个请求仍可能获得旧缓存，同时触发后台重新生成。
+4. 后台生成成功后，后续请求获得新版本。
+
+这是一种 stale-while-revalidate 行为，因此页面更新时间不会严格等于配置的 60 秒。
+
+### 动态路由预生成
+
+对于 `[locale]`、`[slug]` 等动态路由，可以使用 `generateStaticParams()` 指定构建时需要生成的参数：
+
+```tsx
+export const revalidate = 60;
+
+export function generateStaticParams() {
+  return [{ locale: "zh" }, { locale: "en" }];
+}
+```
+
+`generateStaticParams()` 只负责动态参数的预生成，并不是所有 ISR 页面都必须声明。
+
+### 父布局使用动态 API 时
+
+本项目的 `src/app/[locale]/layout.tsx` 会调用 `getServerAuthSession()`。该方法内部读取 `cookies()`，并通过 `cache: "no-store"` 请求会话，因此 `[locale]` 路由默认属于动态渲染。
+
+如果子页面只声明：
+
+```tsx
+export const revalidate = 60;
+```
+
+父布局中的动态 API 仍会导致整条路由按请求渲染。表现为每次刷新时页面中的当前时间和请求时间戳都会变化。
+
+对于确认不依赖登录态、Cookie 或请求头的静态页面，可以显式声明：
+
+```tsx
+export const dynamic = "force-static";
+export const revalidate = 60;
+```
+
+本项目 ISR 演示页的完整关键配置为：
+
+```tsx
+export const dynamic = "force-static";
+export const revalidate = 60;
+
+export function generateStaticParams() {
+  return [{ locale: "en" }, { locale: "zh" }];
+}
+```
+
+`force-static` 会将该路由固定为静态渲染，并使 `cookies()`、`headers()` 等请求态动态 API 返回空值。因此只能在页面不需要个性化内容时使用。
+
+### 按需重新验证
+
+当内容更新后需要立即让缓存失效，而不是等待固定时间，可以在服务端使用：
+
+- `revalidatePath()`：使指定路径的缓存失效。
+- `revalidateTag()`：使带有指定缓存标签的数据失效。
+
+按需重新验证通常由后台管理操作、Webhook 或 Route Handler 触发。
+
+## 需要注意的问题
+
+### ISR 必须使用生产模式验证
+
+开发模式会为了开发体验频繁重新渲染页面，不能准确反映 ISR 缓存行为。
+
+应使用以下命令验证：
+
+```bash
+npm run build
+npm run start
+```
+
+构建输出中，ISR 路由应显示为预生成页面，并带有重新验证时间，例如：
+
+```text
+● /[locale]/demo/isr    1m
+```
+
+如果显示为 `ƒ`，说明路由仍然是动态渲染。
+
+### 动态 API 会影响整条路由
+
+以下能力通常意味着页面依赖当前请求，可能使路由变成动态渲染：
+
+- `cookies()`
+- `headers()`
+- `draftMode()`
+- `cache: "no-store"`
+- `revalidate: 0`
+- `dynamic = "force-dynamic"`
+
+排查 ISR 未生效时，不仅要检查当前 `page.tsx`，还要检查它的所有父级 `layout.tsx` 和数据请求方法。
+
+### 不要缓存用户私有内容
+
+ISR 页面会被多个访问者复用。页面中不能包含登录用户信息、权限结果、私有 Cookie 数据或其他用户专属内容，否则可能造成数据泄露。
+
+公共静态内容可以使用 ISR；用户相关内容应通过动态渲染、客户端请求或独立的动态路由边界处理。
+
+### 重新生成失败时继续提供旧缓存
+
+后台重新生成失败时，Next.js 通常会继续返回旧缓存，并在后续请求中再次尝试更新。接口和页面代码仍应做好错误处理，避免一次异常破坏现有可用页面。
+
+### 多实例部署需要共享缓存策略
+
+在单机 `next start` 中，ISR 缓存保存在当前应用实例。多实例、容器或 Serverless 部署时，需要确认部署平台是否提供共享和持久化的增量缓存，否则不同实例可能返回不同版本。
+
+## 本项目排查结论
+
+`/zh/demo/isr` 和 `/en/demo/isr` 原本每次刷新都会更新时间，原因不是 `revalidate` 配置错误，而是父级 locale 布局读取了登录 Cookie，使路由继承了动态渲染行为。
+
+在 ISR 演示页增加 `dynamic = "force-static"` 后：
+
+- 构建结果从动态路由 `ƒ` 变为预生成路由 `●`。
+- 构建清单中的 `initialRevalidateSeconds` 为 `60`。
+- 连续请求返回 `x-nextjs-cache: HIT`。
+- 60 秒内页面时间戳和 ETag 保持一致。
+- 缓存过期后的首次请求触发后台更新，后续请求获得新页面。
