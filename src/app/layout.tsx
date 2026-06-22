@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { FontProvider } from '@/i18n/FontContext';
 import { FontBody } from '@/components/FontBody';
@@ -8,6 +8,12 @@ import { Analytics } from '@vercel/analytics/next';
 export const metadata: Metadata = {
   title: '0xSnickers | Vibe Coder',
   description: 'Personal portfolio of 0xSnickers - sharing vibe coding projects',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({

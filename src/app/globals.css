@@ -30,6 +30,12 @@
     --font-comic: 'Comic Neue', cursive;
     --font-puhui: 'Noto Sans SC', sans-serif;
   }
+
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: clip;
+  }
 }
 
 @layer utilities {
