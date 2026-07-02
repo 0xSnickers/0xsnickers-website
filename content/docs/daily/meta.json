@@ -4,9 +4,8 @@
   "root": true,
   "pages": [
     "index",
-    "5-29",
-    "5-28",
-    "5-27",
+    "如何让 Codex 连接 Ubuntu 服务器",
+    "在远端 Ubuntu 配置 Hermes Agent",
     "..."
   ]
 }

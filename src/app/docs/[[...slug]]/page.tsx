@@ -7,6 +7,7 @@ import {
   DocsPage,
   DocsTitle,
 } from 'fumadocs-ui/page';
+import { ArticleStats } from '@/components/docs/ArticleStats';
 import { getMDXComponents } from '@/components/mdx';
 import { source } from '@/lib/source';
 
@@ -14,6 +15,10 @@ type PageProps = {
   params: Promise<{
     slug?: string[];
   }>;
+};
+
+type DocPageData = {
+  publishedAt?: string;
 };
 
 export function generateStaticParams() {
@@ -61,6 +66,7 @@ export default async function Page({ params }: PageProps) {
     <DocsPage toc={page.data.toc}>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
+      <ArticleStats slug={slug.join('/')} publishedAt={(page.data as DocPageData).publishedAt} />
       <DocsBody>
         <MDX
           components={getMDXComponents({

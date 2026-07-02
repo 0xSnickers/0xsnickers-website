@@ -43,5 +43,9 @@ yarn-error.log*
 *.swp
 *.swo
 
-# Trae
+# agents
+output/
+.agents/
 .trae/
+.claude/
+.codex/

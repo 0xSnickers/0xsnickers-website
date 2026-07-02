@@ -6,10 +6,12 @@ export type Translation = {
   };
   hero: {
     badge: string;
-    title: string;
-    titleHighlight: string;
     description: string;
-    browseProjects: string;
+    quickLinksTitle: string;
+    quickLinks: Array<{
+      label: string;
+      href: string;
+    }>;
     stats: {
       label1: string;
       sub1: string;
@@ -35,11 +37,15 @@ export const en: Translation = {
     docs: 'Logbook',
   },
   hero: {
-    badge: 'vibe coding for anything',
-    title: 'Making fun stuff',
-    titleHighlight: '',
-    description: 'Meme projects, onchain toys, automation tools, and all sorts of half-baked ideas.',
-    browseProjects: 'View Projects',
+    badge: "🐱 0xsnickers' notes",
+    description: 'I build small toys and notes.',
+    quickLinksTitle: 'Browse by topic',
+    quickLinks: [
+      { label: 'Daily', href: '/docs/daily' },
+      { label: 'Frontend', href: '/docs/frontend' },
+      { label: 'Backend', href: '/docs/backend' },
+      { label: 'Solidity', href: '/docs/solidity' },
+    ],
     stats: {
       label1: '20+',
       sub1: 'Projects',
@@ -65,11 +71,15 @@ export const zh: Translation = {
     docs: '日常',
   },
   hero: {
-    badge: 'vibe coding for anything',
-    title: '造一些好玩的东西',
-    titleHighlight: '',
-    description: 'Meme 项目、链上玩具、自动化工具，还有各种半成品想法。',
-    browseProjects: '浏览项目',
+    badge: "🐱 0xsnickers' notes",
+    description: '我会做一些小玩具，也会写一些笔记。',
+    quickLinksTitle: '按主题浏览',
+    quickLinks: [
+      { label: '日常', href: '/docs/daily' },
+      { label: '前端', href: '/docs/frontend' },
+      { label: '后端', href: '/docs/backend' },
+      { label: 'Solidity', href: '/docs/solidity' },
+    ],
     stats: {
       label1: '20+',
       sub1: '项目',

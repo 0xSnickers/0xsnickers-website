@@ -46,7 +46,7 @@ export default function Navbar() {
         scrolled ? 'bg-white/80 backdrop-blur-xl' : ''
       }`}>
         <div className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-3 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-3 py-4 sm:py-4">
             <Link href="/" className="flex min-w-0 items-center gap-2.5 sm:gap-3" onClick={() => setIsOpen(false)}>
               <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl shadow-[0_10px_25px_rgba(14,165,233,0.28)] sm:h-11 sm:w-11">
                 <Image
@@ -57,7 +57,7 @@ export default function Navbar() {
                   className="h-full w-full object-cover"
                 />
               </div>
-              <span className="truncate text-xl font-bold text-text sm:text-2xl">
+              <span className="truncate text-[1.35rem] font-bold leading-none text-text sm:text-2xl">
                 {t.navbar.brand}
               </span>
             </Link>
@@ -88,14 +88,14 @@ export default function Navbar() {
             <div className="flex shrink-0 items-center gap-2 md:hidden">
               <button
                 onClick={() => setLanguage(language === 'en' ? 'zh' : 'en')}
-                className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border/60 bg-white/80 px-3 py-2 text-sm font-semibold text-text/75 backdrop-blur-md transition-colors hover:bg-white"
+                className="inline-flex min-h-10 min-w-[4.1rem] items-center justify-center rounded-2xl border border-border/50 bg-white/76 px-3 py-2 text-sm font-semibold text-text/70 backdrop-blur-md transition-colors hover:bg-white"
                 aria-label="Toggle language"
               >
                 {language === 'en' ? '中文' : 'EN'}
               </button>
               <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-2xl border border-border/60 bg-white/80 p-2.5 backdrop-blur-md transition-colors hover:bg-white"
+                className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-2xl border border-border/50 bg-white/76 p-2.5 backdrop-blur-md transition-colors hover:bg-white"
                 aria-label={isOpen ? 'Close menu' : 'Open menu'}
                 aria-expanded={isOpen}
               >

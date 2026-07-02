@@ -14,8 +14,8 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <div className="fixed inset-0 aurora-bg opacity-20 pointer-events-none z-0"></div>
-      <div className="fixed inset-0 aurora-overlay pointer-events-none z-0"></div>
+      <div className="pointer-events-none fixed inset-0 z-0 aurora-bg"></div>
+      <div className="pointer-events-none fixed inset-0 z-0 aurora-overlay"></div>
       <div className="relative z-10">
         <LanguageProvider>
           <Navbar />

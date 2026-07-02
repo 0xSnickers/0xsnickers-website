@@ -40,32 +40,19 @@
 
 @layer utilities {
   .aurora-bg {
-    background: linear-gradient(
-      -45deg,
-      #0ea5e9,
-      #38bdf8,
-      #00ffff,
-      #ff00ff,
-      #0066ff,
-      #00ff66
-    );
-    background-size: 400% 400%;
-    animation: auroraFlow 12s ease infinite;
+    background:
+      radial-gradient(circle at 12% 14%, rgba(220, 252, 231, 0.92), transparent 30%),
+      radial-gradient(circle at 82% 12%, rgba(191, 219, 254, 0.9), transparent 34%),
+      linear-gradient(135deg, #ecfeff 0%, #dff8f3 34%, #c7f1f8 64%, #dbeafe 100%);
   }
 
   .aurora-overlay {
-    background: radial-gradient(
-      ellipse at 20% 50%,
-      rgba(0, 255, 255, 0.3) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      ellipse at 80% 50%,
-      rgba(255, 0, 255, 0.3) 0%,
-      transparent 50%
-    );
-    animation: gradientShift 10s ease infinite;
-    background-size: 200% 200%;
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+      radial-gradient(ellipse at 46% 56%, rgba(14, 165, 233, 0.12), transparent 46%);
+    background-size: 44px 44px, 44px 44px, 100% 100%;
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.85), transparent 78%);
   }
 
   .aurora-card {
@@ -89,22 +76,86 @@
     box-shadow: 0 20px 40px rgba(14, 165, 233, 0.2);
   }
 
-  .aurora-button {
-    background: linear-gradient(135deg, #f97316, #ea580c);
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
-  }
-
-  .aurora-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(249, 115, 22, 0.5);
-  }
-
   .destination-gradient {
     background: linear-gradient(
       180deg,
       transparent 0%,
       rgba(12, 74, 110, 0.9) 100%
     );
+  }
+
+  .article-like-heart {
+    display: inline-flex;
+    transform-origin: center;
+    animation: articleLikeHeartPop 260ms ease-out;
+  }
+
+  .article-like-heart-liked {
+    animation: articleLikeHeartPop 320ms cubic-bezier(0.2, 1.4, 0.35, 1);
+  }
+
+  .article-like-count {
+    animation: articleLikeCountFloat 220ms ease-out;
+  }
+
+  /* Keep Fumadocs desktop side panels pinned while the article scrolls. */
+  @media (width >= 48rem) {
+    #nd-docs-layout [data-sidebar-placeholder] {
+      position: fixed;
+      inset-block-start: 0;
+      inset-inline-start: max(0px, calc((100vw - var(--fd-layout-width, 97rem)) / 2));
+      width: var(--fd-sidebar-width);
+      height: 100dvh;
+      align-self: start;
+    }
+
+    #nd-docs-layout #nd-sidebar {
+      position: absolute;
+      inset-block: 0;
+      overflow: hidden;
+    }
+
+    #nd-docs-layout #nd-sidebar [data-radix-scroll-area-viewport] {
+      overflow-y: auto !important;
+    }
+  }
+
+  @media (width >= 80rem) {
+    #nd-docs-layout #nd-toc {
+      position: fixed;
+      inset-block-start: 0;
+      inset-inline-end: max(0px, calc((100vw - var(--fd-layout-width, 97rem)) / 2));
+      width: var(--fd-toc-width);
+      height: 100dvh;
+      max-height: 100dvh;
+      overflow: hidden;
+      align-self: start;
+    }
+  }
+}
+
+@keyframes articleLikeHeartPop {
+  0% {
+    transform: scale(0.86);
+  }
+
+  55% {
+    transform: scale(1.22);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes articleLikeCountFloat {
+  0% {
+    opacity: 0.7;
+    transform: translateY(2px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
