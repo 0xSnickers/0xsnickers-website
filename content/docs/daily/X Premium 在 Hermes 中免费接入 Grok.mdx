@@ -1,0 +1,175 @@
+---
+title: X Premium 在 Hermes 中免费接入 Grok
+description: 开通 X Premium 之后，才发现可以免费将 Grok 接入到我的Hermes Agent
+publishedAt: "2026-07-06"
+---
+## 
+
+如果你已经开通 X 账户 Premium，有一件事很多人还不知道：**你其实已经拿到了一些可用的 Grok 免费 API 额度，可以直接在 Hermes 里接入 Grok，也可以直接在自己电脑终端里使用 Grok CLI。**
+
+
+> 如果 Hermes 跑在远端环境，回调失败时按提示手动粘贴 callback URL 或授权码即可。
+
+
+
+流程很简单：
+1. 终端运行 `hermes model`
+2. 选择 `xAI Grok`
+3. 选中 `xAI Grok OAuth`
+4. 完成 `xAI` 授权
+5. 选择默认模型 `grok-build-0.1` 就完成配置了。
+
+
+## 使用方式
+
+### 1. 接入 Hermes 之前，确认自己的 Grok API 额度
+
+如果你已经开好 Premium，可以登陆 `https://grok.com` 点击左下角打开 `setting` 弹框可以看到有 Usage 信息（普通用户是看不到这个 Usage）
+
+> Grok API 额度
+
+![X Premium 账号可用的 Grok 免费 API 额度](/images/docs/daily/hermes-grok-usage-limit.png)
+
+### 2. 在终端里使用 Grok CLI
+
+如果你不打算先接 Hermes，也可以直接在自己电脑终端里使用 Grok CLI。
+
+先执行安装命令：
+
+```bash
+curl -fsSL https://x.ai/cli/install.sh | bash
+```
+
+安装完成后，在终端输入：
+
+```bash
+grok
+```
+
+然后回车。浏览器会自动打开，让你完成授权登录。
+
+登录成功后，就可以直接在终端里使用 Grok CLI 执行任务了。
+
+![使用 Grok Cli](/images/docs/daily/hermes-grok-cli.png)
+
+
+
+## 怎么接入Hermes ？
+
+### 1. 在 Hermes 里选择 xAI Grok OAuth
+
+先在终端执行：
+
+```bash
+hermes model
+```
+
+Hermes 会弹出模型或 provider 选择界面。
+
+> 选中 `xAI Grok ` 、回车确认。
+
+![Hermes 的 provider 列表中选择 xAI Grok OAuth](/images/docs/daily/hermes-grok-oauth-login-terminal.jpg)
+
+选中 `xAI Grok OAuth` 、回车确认。
+
+![Hermes provider 选择框中高亮 xAI Grok OAuth](/images/docs/daily/hermes-grok-provider-picker.jpg)
+
+### 2. 让 Hermes 发起 xAI 授权登录
+
+选中 `xAI Grok OAuth` 后，会出现一串 URL ，复制到浏览器访问并授权就行。
+
+> 这一步你只需要做一件事：**在浏览器打开终端给出的 `auth.x.ai` 授权链接**。
+
+![Hermes 在终端里发起 xAI OAuth 登录流程](/images/docs/daily/hermes-grok-agent-ui-model.jpg)
+
+
+### 3. 在浏览器里点击 Allow
+
+浏览器打开后，xAI 会让你确认授权范围。确认无误后，点击 `Allow`。
+
+![xAI 授权 Grok Build 的确认页面](/images/docs/daily/hermes-grok-oauth-allow-page.png)
+
+这里要注意：**浏览器里点完 Allow，只代表 xAI 侧授权完成，不一定代表 Hermes 侧已经真正收到了回调。** 很多人会卡在这一步。
+
+### 4. 如果 Hermes 跑在远端环境里，用手动方式完成 callback
+
+如果 Hermes 跑在远端 Ubuntu、VM、WSL 或 SSH 会话里，浏览器通常开在你当前电脑上，但 callback 地址属于运行 Hermes 的那台机器。
+
+所以看到 `http://127.0.0.1:xxxxx/callback` 回不去，通常是正常现象。这时直接按终端提示改用手动粘贴方式继续。
+
+终端常见提示包括：
+
+- 粘贴完整 callback URL
+- 或者直接粘贴浏览器里展示的一次性授权码
+
+![Hermes 在远端环境中提示手动粘贴 callback URL 完成登录](/images/docs/daily/hermes-grok-manual-callback-terminal.jpg)
+
+
+### 5. 选择 grok-build-0.1 模型，完成配置
+![Hermes 在远端环境中提示手动粘贴 callback URL 完成登录](/images/docs/daily/hermes-grok-oauth-code-page.jpg)
+登录成功后，Hermes 通常会提示：
+
+- 授权状态已写入 `~/.hermes/auth.json`
+- 配置已更新到 `~/.hermes/config.yaml`
+- 默认模型已切到 `grok-build-0.1`
+
+这时你可以再执行一次：
+
+```bash
+hermes model
+```
+
+如果当前 provider 已经是 `xAI Grok OAuth`，当前模型变成 `grok-build-0.1`，说明接入已经完成。
+
+你也可以直接在 Hermes 里问一句：
+
+```text
+hi, 你现在用什么 AI 模型工作？
+```
+
+![Hermes 在对话中确认当前模型是 grok-build-0.1](/images/docs/daily/hermes-grok-model-confirmation-chat.jpg)
+
+如果你用的是完整的 Hermes Agent 界面，也可以在右侧模型栏里直接确认当前模型。
+
+![Hermes Agent 界面里当前模型显示为 grok-build-0.1](/images/docs/daily/hermes-grok-provider-list.jpg)
+
+到这里，Hermes 就已经接好 Grok 了。
+
+## 常见问题
+
+
+### 浏览器已经打开了授权页，但终端一直卡在等待 callback
+
+这通常不是授权失败，而是 callback 地址属于运行 Hermes 的那台机器，不属于你当前打开浏览器的设备。
+
+推荐做法：
+
+- 直接按终端提示改用手动粘贴 callback URL 或授权码。
+- 不要反复刷新授权页。
+- 不要默认认为 `127.0.0.1` 一定是你眼前这台电脑。
+
+### 我已经点了 Allow，但 Hermes 还是没切到 Grok
+
+先重新执行：
+
+```bash
+hermes model
+```
+
+重点看两项：
+
+- 当前 provider 是否已经是 `xAI Grok OAuth`
+- 当前 model 是否已经是 `grok-build-0.1`
+
+如果没有切过去，通常说明浏览器里的授权已经完成了，但 callback 或授权码没有成功回填到终端。
+
+### 想确认 Hermes 到底读的是哪份配置
+
+重点看两个文件：
+
+```text
+~/.hermes/auth.json
+~/.hermes/config.yaml
+```
+
+前者存授权状态，后者存当前 provider 和模型配置。

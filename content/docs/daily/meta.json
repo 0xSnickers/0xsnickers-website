@@ -4,8 +4,7 @@
   "root": true,
   "pages": [
     "index",
-    "如何让 Codex 连接 Ubuntu 服务器",
-    "在远端 Ubuntu 配置 Hermes Agent",
-    "..."
+    "Codex SSH 连接远端云服务器",
+    "X Premium 在 Hermes 中免费接入 Grok"
   ]
 }

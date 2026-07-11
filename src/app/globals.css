@@ -55,6 +55,43 @@
     mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.85), transparent 78%);
   }
 
+  .home-dark-aurora-bg {
+    background:
+      radial-gradient(circle at 16% 18%, rgba(34, 211, 238, 0.1), transparent 24%),
+      radial-gradient(circle at 82% 14%, rgba(59, 130, 246, 0.16), transparent 30%),
+      radial-gradient(circle at 50% 76%, rgba(14, 165, 233, 0.08), transparent 38%),
+      linear-gradient(135deg, #020617 0%, #030b18 32%, #07111f 58%, #0b1730 100%);
+  }
+
+  .home-dark-aurora-overlay {
+    background:
+      radial-gradient(ellipse at 40% 16%, rgba(34, 211, 238, 0.1), transparent 36%),
+      linear-gradient(180deg, rgba(2, 6, 23, 0.2) 0%, rgba(2, 6, 23, 0.32) 58%, rgba(2, 6, 23, 0.72) 100%);
+    background-size: 100% 100%, 100% 100%;
+    mask-image: none;
+  }
+
+  .home-dark-shell {
+    color: #f8fafc;
+  }
+
+  .shape-grid-shell {
+    mask-image: none;
+  }
+
+  .shape-grid-shell-dark {
+    opacity: 0.48;
+  }
+
+  .shape-grid-shell-light {
+    opacity: 0.72;
+    mask-image: none;
+  }
+
+  .shape-grid-canvas {
+    opacity: 0.88;
+  }
+
   .aurora-card {
     background: linear-gradient(
       135deg,

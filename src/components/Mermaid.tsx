@@ -16,6 +16,20 @@ export default function Mermaid({ chart, className }: MermaidProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const renderChart = useCallback(async (target: HTMLDivElement, renderId: string) => {
+    const dompurifyModule = await import('dompurify');
+    const dompurify = dompurifyModule.default as typeof dompurifyModule.default & {
+      sanitize?: (input: string, config?: unknown) => string;
+      addHook?: (hook: string, cb: (node: Element) => void) => void;
+    };
+
+    if (typeof dompurify === 'function' && typeof dompurify.sanitize !== 'function') {
+      const purifier = dompurify(window);
+      Object.assign(dompurify, {
+        sanitize: purifier.sanitize.bind(purifier),
+        addHook: purifier.addHook.bind(purifier),
+      });
+    }
+
     const mermaid = (await import('mermaid')).default;
 
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;

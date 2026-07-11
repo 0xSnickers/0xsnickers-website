@@ -1,77 +1,77 @@
-# Agent Guide
+# Codex Guide
 
-这份文档给编码助手使用，用来快速理解这个项目怎么改、怎么跑、怎么验证。
+这份文档给 Codex 使用，目标是让每次改动都贴合当前项目规则。
 
 ## 解决什么问题
 
-这个仓库是 0xSnickers 的个人网站和技术日志。站点用 Next.js App Router 构建，`/docs` 区域由 Fumadocs + MDX 驱动，主要存放 daily、frontend、backend、solidity 等笔记。
+本项目是一个 Next.js 个人网站和 Fumadocs 知识库。Codex 主要需要帮忙完成：
 
-你在这个项目里通常会处理三类任务：
+- 写作和优化 MDX 技术文章。
+- 修改文档站 UI、交互和样式。
+- 排查构建、部署、Supabase 统计等问题。
 
-- 修改页面、组件和样式。
-- 新增或整理 MDX 文章。
-- 维护文章统计、发布日期、点赞等交互功能。
+内容风格尽量简洁、通俗，优先说明：它解决什么问题、怎么使用、使用时要注意什么。
 
 ## 怎么使用
 
-常用命令：
+开发命令：
 
 ```bash
-npm install
 npm run dev
 npm run build
 ```
 
-项目结构：
-
-```text
-src/app/                  Next.js App Router
-src/components/           UI 和 MDX 组件
-src/components/docs/      文档页相关组件
-src/lib/                  数据源和客户端工具
-content/docs/             Fumadocs MDX 内容
-public/images/docs/       文档图片
-```
-
 沟通风格：
 
-- 先给答案，再补必要背景。
-- 直接、具体、有信息量，去掉客套和填充句。
-- 简单问题用短回答，复杂任务用清晰步骤。
-- 解释概念控制在 3-5 句，覆盖核心即可。
-- 比较方案时给推荐和关键理由，控制在 3-4 个要点。
-- 结尾给具体建议或已完成结果，保持自然收束。
+- 先回答，再给必要上下文。
+- 直接、有信息量，省掉寒暄、铺垫和重复解释。
+- 简单问题用一句话，复杂问题用短段落或步骤。
+- 解释概念控制在 3-5 句。
+- 比较选项时直接给推荐和关键理由。
+- 结尾给明确结果或下一步。
 
 表达约束：
 
-- 用正向陈述表达判断，直接说明推荐做法。
-- 需要区分两种情况时，用并列正向描述。
-- 代码回答给代码和必要用法示例。
-- 列表只用于天然并列或顺序内容。
-- 同一个观点表达一次即可。
+- 使用正向陈述，直接说推荐方案。
+- 需要区分边界时，用并列正向句表达。
+- 使用列表服务结构，保持列表短。
+- 代码回答给可运行代码和必要用法。
+- 保持中文表达自然，文章内容通俗易懂。
 
-新增文章时：
+实现原则：
 
-- 放到对应的 `content/docs/<category>/` 目录。
-- frontmatter 至少包含 `title`、`description`、`publishedAt`。
-- `publishedAt` 使用 `YYYY-MM-DD`。
-- 需要控制侧边栏顺序时，更新同目录的 `meta.json`。
-- 文章图片放在 `public/images/docs/` 下，再用 `/images/docs/...` 引用。
+- 动手前先说清楚假设；如果需求有多种理解，先指出分歧再继续。
+- 能用更简单方案解决时，直接推荐简单方案，不为未来假设做额外抽象。
+- 只实现当前明确需要的内容，不额外加功能、配置、兜底分支或不可能发生的错误处理。
+- 修改保持外科手术式范围，只改和任务直接相关的代码，不顺手重构周边内容。
+- 优先沿用现有代码风格和结构；如果本次改动引入未使用的 import、变量或函数，只清理这次改动造成的部分。
+- 对多步骤任务，先给简短步骤和验证点；修 bug、加校验、做重构时，都要落到可验证结果上。
 
-文章统计：
+写文章时遵守：
 
-- 页面统计组件是 `src/components/docs/ArticleStats.tsx`。
-- API 路由是 `src/app/api/article-stats/route.ts`。
-- Supabase 表是 `article_stats`，包含 `views`、`likes`、`published_at`。
-- 阅读数按访问 IP 哈希去重，依赖 `ARTICLE_STATS_IP_SALT`。
+- 文章放在 `content/docs/` 对应分类下。
+- frontmatter 写 `title`、`description`、`publishedAt`。
+- `publishedAt` 格式固定为 `YYYY-MM-DD`。
+- 默认按这套顺序输出正文：`## 文章核心内容`、`## 使用方式`、`## 怎么实现`、`## 常见问题`。
+- `文章核心内容` 先用 1-2 段讲清楚它解决什么问题、什么人适合用，再给一个很短的流程或结论列表。
+- `使用方式` 先写读者在正式操作前要确认什么，再写最直接的使用入口；能直接上手的命令、入口、界面名称要写清楚。
+- `怎么实现` 用编号步骤展开，每步一个小标题，先说这一步要做什么，再补必要说明；关键提醒优先用短引用块单独强调。
+- `常见问题` 只保留真实高频卡点，直接写现象、原因和建议做法，不写空泛排障。
+- 全文用短段落和短列表，语言自然直白，先讲用途，再讲步骤，最后讲注意点和易错点。
+
+改代码时遵守：
+
+- 优先复用已有组件和样式；引入新库前确认收益。
+- 图标优先使用 `lucide-react`。
+- 文档图片放在 `public/images/docs/`。
+- 文章统计功能集中在 `ArticleStats` 和 `/api/article-stats`。
+- 涉及 Supabase 时，service role 和私密 key 只保存在服务端环境或平台 Secrets。
 
 ## 注意什么
 
-- 修改后优先跑 `npm run build`。
-- `.env`、API key、数据库密钥保存在本地环境或平台 Secrets。
-- `NEXT_PUBLIC_` 环境变量会暴露给浏览器，只放公开 key。
-- 修改 MDX 代码块语言时，使用 Shiki 支持的语言；缺少把握时用 `text`。
-- Mermaid 图使用 `src/components/Mermaid.tsx`。
-- Tailwind 使用 v4，公共样式集中在 `src/app/globals.css`。
-- 部署使用 GitHub Actions 生成 standalone artifact，生产环境由 PM2 运行 standalone 输出。
-- 修改 `.github/workflows/deploy.yml` 前先阅读 README 的部署说明，`.next/static` 必须复制到 `release/.next/static/`。
+- 每次实现后跑 `npm run build`。
+- 写文章时检查 MDX 语法、代码块语言和图片路径。
+- 本地 `.env` 内容只留在本机或部署平台 Secrets。
+- 保留用户已有修改，只改和任务相关的文件。
+- 如果要调整部署，先阅读 `README.md` 和 `.github/workflows/deploy.yml`。
+- 当前生产部署依赖 Next.js standalone、PM2 和 Nginx/面板反代。

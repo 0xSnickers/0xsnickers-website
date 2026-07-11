@@ -3,6 +3,9 @@ export type Translation = {
     brand: string;
     font: string;
     docs: string;
+    donate: string;
+    themeDark: string;
+    themeLight: string;
   };
   hero: {
     badge: string;
@@ -28,6 +31,10 @@ export type Translation = {
   footer: {
     copyright: string;
   };
+  notFound: {
+    home: string;
+    docs: string;
+  };
 };
 
 export const en: Translation = {
@@ -35,6 +42,9 @@ export const en: Translation = {
     brand: '0xsnickers.lol',
     font: 'Font',
     docs: 'Logbook',
+    donate: 'Donate',
+    themeDark: 'Dark',
+    themeLight: 'Light',
   },
   hero: {
     badge: "🐱 0xsnickers' notes",
@@ -62,6 +72,10 @@ export const en: Translation = {
   footer: {
     copyright: '👨‍💻 All accumulation is building strength for the future.',
   },
+  notFound: {
+    home: 'Back home',
+    docs: 'View docs',
+  },
 };
 
 export const zh: Translation = {
@@ -69,10 +83,13 @@ export const zh: Translation = {
     brand: '0xsnickers.lol',
     font: '字体',
     docs: '日常',
+    donate: '打赏',
+    themeDark: '暗色',
+    themeLight: '浅色',
   },
   hero: {
     badge: "🐱 0xsnickers' notes",
-    description: '我会做一些小玩具，也会写一些笔记。',
+    description: '分享平时做的一些小项目和笔记记录。',
     quickLinksTitle: '按主题浏览',
     quickLinks: [
       { label: '日常', href: '/docs/daily' },
@@ -95,5 +112,9 @@ export const zh: Translation = {
   },
   footer: {
     copyright: '👨‍💻 所有的积累都是在为未来积蓄力量。',
+  },
+  notFound: {
+    home: '返回首页',
+    docs: '查看文档',
   },
 };

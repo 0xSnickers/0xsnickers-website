@@ -3,6 +3,7 @@ import './globals.css';
 import { FontProvider } from '@/i18n/FontContext';
 import { FontBody } from '@/components/FontBody';
 import { SiteShell } from '@/components/SiteShell';
+import ClickSpark from '@/components/ClickSpark';
 import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
@@ -25,8 +26,10 @@ export default function RootLayout({
     <html lang="en">
       <FontProvider>
         <FontBody>
-          <SiteShell>{children}</SiteShell>
-          <Analytics />
+          <ClickSpark sparkColor="#ffffff" sparkSize={10} sparkRadius={15} sparkCount={8} duration={400} extraScale={1}>
+            <SiteShell>{children}</SiteShell>
+            <Analytics />
+          </ClickSpark>
         </FontBody>
       </FontProvider>
     </html>
