@@ -23,35 +23,19 @@ function isZoomableImage(target: EventTarget | null): target is HTMLImageElement
   return target instanceof HTMLImageElement && target.dataset.articleZoomable === 'true';
 }
 
+function shouldOpenZoom(image: HTMLImageElement) {
+  const src = image.currentSrc || image.getAttribute('src') || '';
+  const isInsideButton = image.closest('button') !== null;
+  const isInsideLink = image.closest('a') !== null;
+  const isInsideNoProse = image.closest('.not-prose') !== null;
+  const isTinyIcon = image.clientWidth > 0 && image.clientWidth <= 40 && image.clientHeight > 0 && image.clientHeight <= 40;
+
+  return src.length > 0 && !isInsideButton && !isInsideLink && !isInsideNoProse && !isTinyIcon;
+}
+
 export default function ArticleZoomImage({ children }: ArticleZoomImageProps) {
   const dialogTitleId = useId().replace(/:/g, '');
   const [activeImage, setActiveImage] = useState<ActiveImage | null>(null);
-
-  useEffect(() => {
-    const root = document.querySelector('[data-article-zoom-root]');
-    if (!(root instanceof HTMLElement)) return;
-
-    const images = Array.from(root.querySelectorAll('img'));
-
-    for (const image of images) {
-      const src = image.currentSrc || image.getAttribute('src') || '';
-      const isInsideButton = image.closest('button') !== null;
-      const isInsideLink = image.closest('a') !== null;
-      const isInsideNoProse = image.closest('.not-prose') !== null;
-      const isTinyIcon = image.clientWidth > 0 && image.clientWidth <= 40 && image.clientHeight > 0 && image.clientHeight <= 40;
-      const shouldEnable = src.length > 0 && !isInsideButton && !isInsideLink && !isInsideNoProse && !isTinyIcon;
-
-      image.dataset.articleZoomable = shouldEnable ? 'true' : 'false';
-      image.classList.toggle('cursor-zoom-in', shouldEnable);
-    }
-
-    return () => {
-      for (const image of images) {
-        delete image.dataset.articleZoomable;
-        image.classList.remove('cursor-zoom-in');
-      }
-    };
-  }, [children]);
 
   useEffect(() => {
     if (!activeImage) return;
@@ -77,7 +61,7 @@ export default function ArticleZoomImage({ children }: ArticleZoomImageProps) {
   };
 
   const handleClickCapture = (event: ReactMouseEvent<HTMLDivElement>) => {
-    if (!isZoomableImage(event.target)) return;
+    if (!isZoomableImage(event.target) || !shouldOpenZoom(event.target)) return;
 
     const src = event.target.currentSrc || event.target.getAttribute('src') || '';
     if (!src) return;

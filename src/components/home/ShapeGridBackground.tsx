@@ -36,6 +36,7 @@ export default function ShapeGridBackground() {
     let height = 0;
     let spotlight: CanvasGradient | null = null;
     let animationEnabled = true;
+    let interactiveHoverEnabled = false;
     let lastFrameTime = 0;
 
     const resizeCanvas = () => {
@@ -172,7 +173,8 @@ export default function ShapeGridBackground() {
     };
 
     const syncAnimation = () => {
-      animationEnabled = !mediaQuery.matches && pointerQuery.matches && !document.hidden;
+      animationEnabled = !mediaQuery.matches && !document.hidden;
+      interactiveHoverEnabled = pointerQuery.matches;
       stopAnimation();
 
       if (animationEnabled) {
@@ -198,7 +200,7 @@ export default function ShapeGridBackground() {
     };
 
     const handlePointerMove = (event: MouseEvent) => {
-      if (!animationEnabled) return;
+      if (!animationEnabled || !interactiveHoverEnabled) return;
 
       const mouseX = event.clientX;
       const mouseY = event.clientY;
@@ -229,6 +231,7 @@ export default function ShapeGridBackground() {
     };
 
     const handlePointerLeave = () => {
+      if (!interactiveHoverEnabled) return;
       pushTrail(hoveredCellRef.current);
       hoveredCellRef.current = null;
     };

@@ -7,6 +7,7 @@ const DefaultPre = defaultMdxComponents.pre ?? 'pre';
 
 type MdxImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'> & {
   src?: string | { src?: string };
+  'data-no-zoom'?: string;
 };
 
 function resolveMdxImageSrc(src: MdxImageProps['src']) {
@@ -15,8 +16,22 @@ function resolveMdxImageSrc(src: MdxImageProps['src']) {
   return undefined;
 }
 
-function MdxImage({ src, ...props }: MdxImageProps) {
-  return <img {...props} src={resolveMdxImageSrc(src)} />;
+function mergeClassName(...values: Array<string | undefined>) {
+  return values.filter(Boolean).join(' ');
+}
+
+function MdxImage({ src, className, 'data-no-zoom': dataNoZoom, ...props }: MdxImageProps) {
+  const zoomDisabled = dataNoZoom === 'true';
+
+  return (
+    <img
+      {...props}
+      className={mergeClassName(className, zoomDisabled ? undefined : 'cursor-zoom-in')}
+      data-article-zoomable={zoomDisabled ? 'false' : 'true'}
+      data-no-zoom={dataNoZoom}
+      src={resolveMdxImageSrc(src)}
+    />
+  );
 }
 
 function MdxPre(props: ComponentProps<'pre'>) {

@@ -179,7 +179,7 @@ export default function ClickSpark({
   };
 
   return (
-    <div className="relative min-h-screen w-full" onClick={handleClick}>
+    <div className="relative min-h-[100dvh] w-full" onClick={handleClick}>
       {children}
       <canvas
         ref={canvasRef}

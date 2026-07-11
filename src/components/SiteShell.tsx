@@ -52,7 +52,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
   return (
     <HomeThemeProvider value={{ isHome, homeTheme, setHomeTheme: updateHomeTheme, toggleHomeTheme }}>
-      <>
+      <div className={`relative min-h-[100dvh] overflow-x-clip ${shellVariant === 'homeDark' ? 'bg-slate-950' : ''}`}>
         <div className={`pointer-events-none fixed inset-0 z-0 ${shellVariant === 'homeDark' ? 'home-dark-aurora-bg' : 'aurora-bg'}`}></div>
         {isHome ? <ShapeGridBackground /> : null}
         <div className={`pointer-events-none fixed inset-0 z-0 ${shellVariant === 'homeDark' ? 'home-dark-aurora-overlay' : ''}`}></div>
@@ -62,7 +62,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
             {children}
           </LanguageProvider>
         </div>
-      </>
+      </div>
     </HomeThemeProvider>
   );
 }

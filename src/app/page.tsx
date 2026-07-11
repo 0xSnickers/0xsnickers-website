@@ -6,7 +6,7 @@ export default async function Home() {
   const projects = await getGitHubRepositoryProjects();
 
   return (
-    <main className="min-h-screen flex flex-col pt-20">
+    <main className="min-h-[100dvh] flex flex-col pt-20">
       <div className="flex-grow">
         <Hero projects={projects} />
       </div>
