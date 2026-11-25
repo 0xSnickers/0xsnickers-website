@@ -1,0 +1,75 @@
+---
+title: MySQL
+description: 关系型数据库的表设计、增删改查、索引和事务。
+publishedAt: "2026-11-25"
+---
+
+## 文章核心内容
+
+MySQL 是常见的关系型数据库，适合用户、订单、商品等结构明确、需要事务约束的业务数据。下面的示例使用 InnoDB，适合刚开始编写后端接口的开发者。
+
+- 用表和约束组织数据。
+- 用 SQL 查询，用索引减少扫描。
+- 用事务保证多步修改的一致性。
+
+## 使用方式
+
+先确认已经安装 MySQL，并有创建数据库的权限。使用命令行连接，密码通过提示输入：
+
+```bash
+mysql -h 127.0.0.1 -u root -p
+```
+
+应用程序应使用单独的业务账号，通过驱动的参数化查询访问数据库。
+
+## 怎么实现
+
+### 1. 创建数据库和表
+
+```sql
+CREATE DATABASE notes CHARACTER SET utf8mb4;
+USE notes;
+
+CREATE TABLE users (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  name VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+```
+
+### 2. 执行增删改查
+
+```sql
+INSERT INTO users (email, name) VALUES ('alice@example.com', 'Alice');
+SELECT id, email, name FROM users WHERE email = 'alice@example.com';
+UPDATE users SET name = 'Alice Chen' WHERE id = 1;
+DELETE FROM users WHERE id = 1;
+```
+
+> 更新和删除前先核对 WHERE 条件，避免影响整张表。
+
+### 3. 检查索引与事务
+
+email 的唯一约束已经建立索引。使用 EXPLAIN 观察查询计划，再决定是否增加其他索引。
+
+```sql
+EXPLAIN SELECT id FROM users WHERE email = 'alice@example.com';
+
+START TRANSACTION;
+INSERT INTO users (email, name) VALUES ('bob@example.com', 'Bob');
+UPDATE users SET name = 'Robert' WHERE email = 'bob@example.com';
+COMMIT;
+```
+
+应用执行失败时应回滚事务。索引会增加写入和存储开销，按实际查询条件设计。
+
+## 常见问题
+
+### 查询越来越慢
+
+先查看执行计划、扫描行数和返回字段。避免给索引列套函数，并检查联合索引的列顺序是否匹配查询。
+
+### 出现死锁
+
+并发事务可能以不同顺序获取锁。缩短事务、统一更新顺序，并对死锁导致的事务失败做有上限的重试。

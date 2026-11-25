@@ -1,0 +1,75 @@
+---
+title: PostgreSQL
+description: 关系型数据建模、约束、事务、JSONB 和查询计划。
+publishedAt: "2026-11-25"
+---
+
+## 文章核心内容
+
+PostgreSQL 是支持丰富 SQL 能力的关系型数据库，适合需要事务、复杂查询和严格约束的业务系统。它也支持 JSONB，便于在关系模型中保存结构可变的补充属性。
+
+- 核心字段用明确类型和约束。
+- 灵活属性按需使用 JSONB。
+- 用执行计划定位查询开销。
+
+## 使用方式
+
+先确认 PostgreSQL 已启动，且 notes 数据库和连接账号已经创建。命令行连接：
+
+```bash
+psql -h 127.0.0.1 -U postgres -d notes
+```
+
+生产应用使用权限受限的业务账号；SQL 中的外部输入通过驱动参数绑定传入。
+
+## 怎么实现
+
+### 1. 定义表和约束
+
+```sql
+CREATE TABLE users (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  profile JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+TIMESTAMPTZ 表示时间点，显示结果随会话时区变化。
+
+### 2. 写入和查询
+
+```sql
+INSERT INTO users (email, name, profile)
+VALUES ('alice@example.com', 'Alice', '{"city":"Shanghai"}'::jsonb)
+RETURNING id;
+
+SELECT id, name, profile ->> 'city' AS city
+FROM users
+WHERE email = 'alice@example.com';
+```
+
+频繁参与筛选和关联的属性优先设计为明确列；为 JSONB 创建索引前，先确定查询使用的操作符。
+
+### 3. 使用事务和执行计划
+
+```sql
+BEGIN;
+UPDATE users SET name = 'Alice Chen' WHERE id = 1;
+COMMIT;
+
+EXPLAIN SELECT id FROM users WHERE email = 'alice@example.com';
+```
+
+EXPLAIN ANALYZE 会真正执行语句并返回实际耗时。在写语句上使用时，要先评估执行影响。
+
+## 常见问题
+
+### 更新后表空间没有立即缩小
+
+MVCC 会保留旧行版本供并发事务使用。autovacuum 负责清理可回收版本，通常把空间留给表复用；关注长事务和清理进度。
+
+### 连接数耗尽
+
+每个连接都有资源开销。使用连接池，限制应用实例的总连接数量，并确保事务结束后及时归还连接。

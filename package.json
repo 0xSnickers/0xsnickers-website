@@ -6,7 +6,8 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "notes:setup": "node scripts/setup-notes-author.mjs"
+    "notes:setup": "node scripts/setup-notes-author.mjs",
+    "test:notes": "node --test tests/note-folders.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",

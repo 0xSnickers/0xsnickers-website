@@ -1,0 +1,84 @@
+---
+title: Elasticsearch
+description: 全文检索、索引映射、分词和搜索查询。
+publishedAt: "2026-11-25"
+---
+
+## 文章核心内容
+
+Elasticsearch 是面向搜索和分析的分布式引擎，适合文章搜索、商品检索和日志查询。它把文档字段建立索引，结合分词和相关性评分返回匹配结果。
+
+- text 用于分词后的全文搜索。
+- keyword 用于精确过滤、排序和聚合。
+- 业务数据通过同步流程进入搜索索引。
+
+## 使用方式
+
+先准备已经启用认证的 Elasticsearch 实例。下面请求使用 Kibana Dev Tools Console 的语法，可直接在 Console 中逐段执行。
+
+生产同步通常采用业务事件或 CDC；同步流程需要支持重试、去重和索引重建。
+
+## 怎么实现
+
+### 1. 显式定义字段映射
+
+```http
+PUT /notes
+{
+  "mappings": {
+    "properties": {
+      "title": { "type": "text" },
+      "category": { "type": "keyword" },
+      "created_at": { "type": "date" }
+    }
+  }
+}
+```
+
+分词器决定全文检索的匹配方式。中文内容应结合实际文本评估分词效果和可用分词方案。
+
+### 2. 写入文档
+
+```http
+PUT /notes/_doc/1
+{
+  "title": "Learning database indexes",
+  "category": "backend",
+  "created_at": "2026-11-25T08:00:00Z"
+}
+```
+
+使用稳定的业务 ID 作为文档 ID，可以让重复同步覆盖同一条文档。
+
+### 3. 组合检索和过滤
+
+```http
+GET /notes/_search
+{
+  "size": 10,
+  "query": {
+    "bool": {
+      "must": [{ "match": { "title": "database" } }],
+      "filter": [{ "term": { "category": "backend" } }]
+    }
+  }
+}
+```
+
+match 对查询文本进行分析，term 匹配精确索引值。filter 适合无需参与相关性评分的筛选条件。
+
+> 写入成功后需要经过 refresh 才能被搜索到。需要读到刚写入的数据时，可按需使用 refresh=wait_for，并评估吞吐影响。
+
+## 常见问题
+
+### 精确过滤查不到结果
+
+检查字段是否为 text，以及输入是否匹配索引中的值。分类和状态等精确字段使用 keyword。
+
+### 深分页越来越慢
+
+from 加 size 会增加排序和收集成本。连续翻页可使用稳定排序配合 search_after，需要一致视图时配合 PIT。
+
+### 修改字段类型失败
+
+已有字段通常不能直接改变类型。建立新索引、重建数据，再通过别名切换查询入口。

@@ -1,0 +1,82 @@
+---
+title: ClickHouse
+description: 列式分析、MergeTree 表、排序键和聚合查询。
+publishedAt: "2026-11-25"
+---
+
+## 文章核心内容
+
+ClickHouse 是面向分析场景的列式数据库，适合事件日志、指标聚合和大规模报表。它按列组织数据，通过压缩、数据裁剪和并行计算处理大量记录的聚合查询。
+
+- 事务业务数据进入业务数据库。
+- 行为事件批量写入分析表。
+- 根据常用过滤条件选择排序键。
+
+## 使用方式
+
+先准备可连接的 ClickHouse 服务，并使用有权限的账号启动客户端：
+
+```bash
+clickhouse-client --host 127.0.0.1 --user default --password
+```
+
+以下 SQL 在客户端执行。正式采集时规划事件时间、时区、重复事件处理和保留期限。
+
+## 怎么实现
+
+### 1. 创建 MergeTree 表
+
+```sql
+CREATE TABLE events (
+  event_time DateTime('UTC'),
+  user_id UInt64,
+  event_name LowCardinality(String)
+)
+ENGINE = MergeTree
+PARTITION BY toYYYYMM(event_time)
+ORDER BY (event_name, event_time, user_id);
+```
+
+分区便于按时间管理数据，排序键影响数据布局和索引裁剪。示例适合先按事件类型、再按时间筛选的查询。
+
+### 2. 批量写入事件
+
+```sql
+INSERT INTO events VALUES
+  ('2026-11-25 08:00:00', 1, 'page_view'),
+  ('2026-11-25 08:01:00', 2, 'page_view'),
+  ('2026-11-25 08:02:00', 1, 'click');
+```
+
+把小请求汇成批次，或评估异步插入配置，减少频繁产生小数据片段。
+
+### 3. 按时间聚合
+
+```sql
+SELECT
+  toStartOfHour(event_time) AS hour,
+  count() AS page_views,
+  uniqExact(user_id) AS users
+FROM events
+WHERE event_name = 'page_view'
+  AND event_time >= toDateTime('2026-11-25 00:00:00', 'UTC')
+  AND event_time < toDateTime('2026-11-26 00:00:00', 'UTC')
+GROUP BY hour
+ORDER BY hour;
+```
+
+uniqExact 计算精确去重数，基数大时会占用较多内存；允许近似结果时可以评估近似去重函数。
+
+## 常见问题
+
+### 主键为什么没有阻止重复数据
+
+MergeTree 的主键用于查询裁剪，不承担关系型数据库的唯一约束。事件去重需要在采集端或表引擎设计中明确处理。
+
+### 小批量写入导致 parts 过多
+
+频繁插入会生成大量数据片段，增加后台合并压力。增加批次大小并检查写入频率和合并情况。
+
+### 如何处理频繁更新
+
+分析表通常围绕追加写入设计。需要修改和去重时，应结合当前版本和表引擎评估代价，并明确查询何时能看到最终结果。

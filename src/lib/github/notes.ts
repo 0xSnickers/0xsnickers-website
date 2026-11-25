@@ -179,13 +179,19 @@ async function mapPool<T, R>(items: T[], limit: number, task: (item: T) => Promi
   return results;
 }
 
-export async function listDocuments(): Promise<DocEntry[]> {
-  const branch = await workingBranch();
+type RepoTreeEntry = { path?: string; type?: string };
+
+async function readDocumentTree(branch: string): Promise<RepoTreeEntry[]> {
   const response = await github(`/repos/${owner}/${repo}/git/trees/${encodeURIComponent(branch)}?recursive=1`);
   if (!response.ok) fail(response, '无法列出笔记。', await githubMessage(response));
-  const data = (await response.json()) as { truncated?: boolean; tree?: Array<{ path?: string; type?: string }> };
+  const data = (await response.json()) as { truncated?: boolean; tree?: RepoTreeEntry[] };
   if (data.truncated) throw new GithubNotesError('仓库文件太多，无法一次列出笔记。');
-  const paths = (data.tree ?? [])
+  return data.tree ?? [];
+}
+
+export async function listDocuments(): Promise<DocEntry[]> {
+  const branch = await workingBranch();
+  const paths = (await readDocumentTree(branch))
     .filter((item) => item.type === 'blob' && item.path?.startsWith(`${docsRoot}/`) && item.path.endsWith('.mdx'))
     .map((item) => item.path!.slice(docsRoot.length + 1))
     .sort((left, right) => left.localeCompare(right, 'zh'));
@@ -197,9 +203,19 @@ export async function listDocuments(): Promise<DocEntry[]> {
   });
 }
 
-export function documentFolders(documents: DocEntry[]) {
-  return [...new Set(documents.map((document) => document.path.split('/').slice(0, -1).join('/')).filter(Boolean))]
+export function documentFolders(entries: RepoTreeEntry[]) {
+  return [...new Set(entries
+    .filter((entry) => entry.type === 'tree' && entry.path?.startsWith(`${docsRoot}/`))
+    .map((entry) => entry.path!.slice(docsRoot.length + 1)))]
     .sort((left, right) => left.localeCompare(right, 'zh'));
+}
+
+export async function listDocumentFolders(): Promise<string[]> {
+  const draft = await branchSha(draftBranch);
+  // A draft can lag behind main; include published and draft-only categories.
+  const branches = draft ? [mainBranch, draft] : [mainBranch];
+  const trees = await Promise.all(branches.map(readDocumentTree));
+  return documentFolders(trees.flat());
 }
 
 export async function readDocument(path: string): Promise<DocDraft | null> {

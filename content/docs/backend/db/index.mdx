@@ -1,0 +1,42 @@
+---
+title: Overview
+description: MySQL、Redis、PostgreSQL、SQLite、Elasticsearch 和 ClickHouse 数据库笔记。
+publishedAt: "2026-11-25"
+---
+
+## 文章核心内容
+
+这里记录后端开发中常见数据库和存储工具的用途、基础操作及使用注意事项，适合需要选择存储方案或快速回顾基础知识的开发者。
+
+关系型数据库负责结构化业务数据，Redis 常用于缓存，Elasticsearch 用于全文检索，ClickHouse 用于分析聚合。
+
+## 使用方式
+
+先确认数据规模、查询方式、事务要求和部署条件，再阅读对应笔记：
+
+- [MySQL](/docs/backend/db/mysql)：关系型数据库的表设计、增删改查、索引和事务。
+- [Redis](/docs/backend/db/redis)：内存数据结构、缓存过期、原子操作和持久化基础。
+- [PostgreSQL](/docs/backend/db/postgresql)：关系型数据建模、约束、事务、JSONB 和查询计划。
+- [SQLite](/docs/backend/db/sqlite)：单文件数据库、基础 SQL、事务和并发写入。
+- [Elasticsearch](/docs/backend/db/elasticsearch)：全文检索、索引映射、分词和搜索查询。
+- [ClickHouse](/docs/backend/db/clickhouse)：列式分析、MergeTree 表、排序键和聚合查询。
+
+## 怎么实现
+
+### 1. 保存业务数据
+
+MySQL 和 PostgreSQL 适合需要事务与约束的服务端业务。SQLite 适合本地应用、工具和写入并发较低的小型服务。
+
+### 2. 加速访问与搜索
+
+按需用 Redis 缓存热点结果；全文搜索需求可以把业务数据同步到 Elasticsearch，并处理同步延迟。
+
+### 3. 聚合分析事件
+
+大规模日志、行为事件和报表可进入 ClickHouse。围绕查询模式设计排序键，并采用批量写入。
+
+## 常见问题
+
+### 是否需要同时引入全部数据库
+
+从当前业务需要的存储开始。搜索、缓存和分析各自带来同步、备份与运维成本，遇到明确需求时再引入。

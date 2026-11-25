@@ -1,5 +1,5 @@
 import { requireAuthor } from '@/lib/notes/session';
-import { documentFolders, GithubNotesError, listDocuments } from '@/lib/github/notes';
+import { GithubNotesError, listDocumentFolders } from '@/lib/github/notes';
 import { NoteEditor } from '../Editor';
 
 export default async function NewNotePage() {
@@ -7,7 +7,7 @@ export default async function NewNotePage() {
   let folders: string[] = [];
   let loadError = '';
   try {
-    folders = documentFolders(await listDocuments());
+    folders = await listDocumentFolders();
   } catch (error) {
     loadError = error instanceof GithubNotesError ? error.message : '无法读取笔记目录。';
   }

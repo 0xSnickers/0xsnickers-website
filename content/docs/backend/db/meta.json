@@ -1,0 +1,14 @@
+{
+  "title": "DB",
+  "description": "数据库与存储笔记",
+  "pages": [
+    "index",
+    "mysql",
+    "redis",
+    "postgresql",
+    "sqlite",
+    "elasticsearch",
+    "clickhouse",
+    "..."
+  ]
+}
