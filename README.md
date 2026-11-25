@@ -76,9 +76,46 @@ content/docs/daily/5-29.mdx
 content/docs/daily/meta.json
 ```
 
+## Notes Admin
+
+Open `/admin/login` to sign in with the existing Supabase author account. The
+protected pages live at `/admin/notes`, `/admin/notes/new`, and
+`/admin/notes/edit/...`.
+
+Required Production environment variables in Vercel:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `NOTES_AUTHOR_ID`: the existing author's user ID; the account must also have
+  trusted `app_metadata.notes_author = true`.
+- `PROJECT_GITHUB_TOKEN`: a fine-grained token scoped to this repository with
+  Contents read/write access. Metadata read access is added by GitHub.
+
+Saving writes MDX files to `notes-draft`. Publishing merges the draft branch into
+`main`, which triggers Vercel's Git deployment. Public content updates when the
+Production deployment becomes Ready. Local code that has not been committed and
+pushed is not included in that deployment.
+
+Updating permissions on an existing GitHub token keeps its value unchanged, so
+Vercel does not need a replacement value. Regenerating or replacing the token
+requires updating the variable and deploying again. Vercel environment changes
+apply to new deployments.
+
+For initial local account setup only, populate `.env.local`, including the
+server-only `SUPABASE_SERVICE_ROLE_KEY`, then run `npm run notes:setup`. Existing
+authors are reused without changing their password. Keep private keys on the
+server and out of the browser bundle.
+
 ## Deployment
 
-Deployment is handled by GitHub Actions.
+Production currently runs on Vercel at https://0xsnickers.lol. Use the connected
+Git project's `main` deployment and Production domain to verify a release.
+
+### Legacy server deployment
+
+The existing GitHub Actions workflow targets the standalone SSH server. That
+server is currently unavailable; an SCP failure in that workflow is separate
+from Vercel's deployment status.
 
 The server is intentionally kept as a lightweight runtime host. It does not run `npm ci`, `next build`, or `docker build`.
 

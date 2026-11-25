@@ -13,10 +13,12 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isDocs = pathname === '/docs' || pathname.startsWith('/docs/');
   const isHome = pathname === '/';
+  const isAdmin = pathname === '/admin' || pathname.startsWith('/admin/');
+  const hasGrid = isHome || isAdmin;
   const [homeTheme, setHomeTheme] = useState<HomeTheme>('dark');
 
   useEffect(() => {
-    if (!isHome) return;
+    if (!hasGrid) return;
 
     try {
       const savedTheme = localStorage.getItem('home-theme') as HomeTheme | null;
@@ -28,7 +30,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Failed to access localStorage:', error);
     }
-  }, [isHome]);
+  }, [hasGrid]);
 
   const updateHomeTheme = (theme: HomeTheme) => {
     setHomeTheme(theme);
@@ -44,7 +46,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     updateHomeTheme(homeTheme === 'dark' ? 'light' : 'dark');
   };
 
-  const shellVariant: ShellVariant = isHome && homeTheme === 'dark' ? 'homeDark' : 'default';
+  const shellVariant: ShellVariant = hasGrid && homeTheme === 'dark' ? 'homeDark' : 'default';
 
   if (isDocs) {
     return children;
@@ -54,11 +56,11 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     <HomeThemeProvider value={{ isHome, homeTheme, setHomeTheme: updateHomeTheme, toggleHomeTheme }}>
       <div className={`relative min-h-[100dvh] overflow-x-clip ${shellVariant === 'homeDark' ? 'bg-slate-950' : ''}`}>
         <div className={`pointer-events-none fixed inset-0 z-0 ${shellVariant === 'homeDark' ? 'home-dark-aurora-bg' : 'aurora-bg'}`}></div>
-        {isHome ? <ShapeGridBackground /> : null}
+        {hasGrid ? <ShapeGridBackground /> : null}
         <div className={`pointer-events-none fixed inset-0 z-0 ${shellVariant === 'homeDark' ? 'home-dark-aurora-overlay' : ''}`}></div>
         <div className={`relative z-10 ${shellVariant === 'homeDark' ? 'home-dark-shell text-slate-50' : ''}`}>
           <LanguageProvider>
-            <Navbar variant={shellVariant} />
+            {!isAdmin && <Navbar variant={shellVariant} />}
             {children}
           </LanguageProvider>
         </div>
